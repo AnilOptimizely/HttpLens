@@ -2,11 +2,15 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <PackageId>HttpLens</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>HttpLens — install one NuGet, add two lines, see all outbound HTTP traffic in a browser dashboard.</Description>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HttpLens.Core\HttpLens.Core.csproj" />
     <ProjectReference Include="..\HttpLens.Dashboard\HttpLens.Dashboard.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
