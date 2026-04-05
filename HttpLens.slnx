@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/SampleWebApi/SampleWebApi.csproj" />
+    <Project Path="samples/SampleWithPolly/SampleWithPolly.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/HttpLens.Core/HttpLens.Core.csproj" />
+    <Project Path="src/HttpLens.Dashboard/HttpLens.Dashboard.csproj" />
+    <Project Path="src/HttpLens/HttpLens.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HttpLens.Core.Tests/HttpLens.Core.Tests.csproj" />
+    <Project Path="tests/HttpLens.Dashboard.Tests/HttpLens.Dashboard.Tests.csproj" />
+    <Project Path="tests/HttpLens.EndToEnd.Tests/HttpLens.EndToEnd.Tests.csproj" />
+  </Folder>
+</Solution>

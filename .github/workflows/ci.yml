@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Test (.NET ${{ matrix.dotnet }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        dotnet: ['8.0.x', '9.0.x']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/HttpLens.Dashboard/dashboard-ui/package-lock.json
+
+      - name: Install dashboard dependencies
+        working-directory: src/HttpLens.Dashboard/dashboard-ui
+        run: npm ci
+
+      - name: Type-check dashboard
+        working-directory: src/HttpLens.Dashboard/dashboard-ui
+        run: npm run typecheck
+
+      - name: Build dashboard
+        working-directory: src/HttpLens.Dashboard/dashboard-ui
+        run: npm run build
+
+      - name: Setup .NET ${{ matrix.dotnet }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release --collect:"XPlat Code Coverage"
