@@ -19,7 +19,8 @@ public static class TrafficApiEndpoints
     /// Optional ASP.NET Core authorization policy name to apply to all API endpoints.
     /// When <see langword="null"/>, no authorization is required.
     /// </param>
-    public static void MapHttpLensApi(
+    /// <returns>The <see cref="RouteGroupBuilder"/> for the API group, allowing further customisation.</returns>
+    public static RouteGroupBuilder MapHttpLensApi(
         this IEndpointRouteBuilder endpoints,
         string basePath,
         string? authorizationPolicy = null)
@@ -99,5 +100,7 @@ public static class TrafficApiEndpoints
             }
             return Results.Text(HarExporter.Export(records), "application/json");
         }).ExcludeFromDescription();
+
+        return apiGroup;
     }
 }

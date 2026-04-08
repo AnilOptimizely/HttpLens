@@ -5,7 +5,25 @@ using SampleWebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Basic setup — no security (suitable for local development).
 builder.Services.AddHttpLens();
+
+// ── Security example (commented out) ──────────────────────────────────────────
+// Uncomment and tailor to protect the dashboard in non-development environments.
+//
+// builder.Services.AddHttpLens(builder.Environment, options =>
+// {
+//     // Bind all options from appsettings.json / appsettings.{Environment}.json
+//     builder.Configuration.GetSection("HttpLens").Bind(options);
+//
+//     // Or configure programmatically:
+//     // options.IsEnabled = builder.Environment.IsDevelopment();
+//     // options.ApiKey = "my-secret-key";
+//     // options.AuthorizationPolicy = "HttpLensAccess";
+//     // options.AllowedIpRanges.Add("10.0.0.0/8");
+//     // options.AllowedEnvironments.AddRange(["Development", "Staging"]);
+// });
+// ────────────────────────────────────────────────────────────────────────────────
 
 builder.Services
     .AddHttpClient<GitHubService>(client =>

@@ -28,8 +28,47 @@ public static class EndpointRouteBuilderExtensions
         var optionsMonitor = endpoints.ServiceProvider.GetRequiredService<IOptionsMonitor<HttpLensOptions>>();
         var authorizationPolicy = optionsMonitor.CurrentValue.AuthorizationPolicy;
 
-        // Register the JSON API endpoints with the optional authorization policy.
-        endpoints.MapHttpLensApi(path, authorizationPolicy);
+        // Register the JSON API endpoints with the optional authorization policy,
+        // then apply a security endpoint filter for EnabledGuard / IpAllowlist / ApiKey.
+        var apiGroup = endpoints.MapHttpLensApi(path, authorizationPolicy);
+        apiGroup.AddEndpointFilter(async (ctx, next) =>
+        {
+            var monitor = ctx.HttpContext.RequestServices
+                .GetRequiredService<IOptionsMonitor<HttpLensOptions>>();
+            var opts = monitor.CurrentValue;
+
+            // Master switch.
+            if (!opts.IsEnabled)
+                return Results.NotFound();
+
+            // IP allowlist.
+            var remoteIp = ctx.HttpContext.Connection.RemoteIpAddress;
+            if (opts.AllowedIpRanges.Count > 0 &&
+                (remoteIp is null || !IpAllowlistMiddleware.IsIpAllowed(remoteIp, opts.AllowedIpRanges)))
+            {
+                return Results.Json(
+                    new { error = "Access denied" },
+                    statusCode: StatusCodes.Status403Forbidden);
+            }
+
+            // API key.
+            var apiKey = opts.ApiKey;
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                var providedKey =
+                    ctx.HttpContext.Request.Headers[ApiKeyAuthMiddleware.HeaderName].FirstOrDefault()
+                    ?? ctx.HttpContext.Request.Query[ApiKeyAuthMiddleware.QueryParamName].FirstOrDefault();
+
+                if (!string.Equals(providedKey, apiKey, StringComparison.Ordinal))
+                {
+                    return Results.Json(
+                        new { error = "Invalid or missing HttpLens API key" },
+                        statusCode: StatusCodes.Status401Unauthorized);
+                }
+            }
+
+            return await next(ctx);
+        });
 
         // Build a security sub-pipeline that wraps each SPA route.
         // Order: EnabledGuard → IpAllowlist → ApiKey → handler.
