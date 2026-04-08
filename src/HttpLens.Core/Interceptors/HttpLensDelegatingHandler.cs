@@ -13,14 +13,14 @@ namespace HttpLens.Core.Interceptors;
 public sealed class HttpLensDelegatingHandler : DelegatingHandler
 {
     private readonly ITrafficStore _store;
-    private readonly HttpLensOptions _options;
+    private readonly IOptionsMonitor<HttpLensOptions> _optionsMonitor;
 
     /// <param name="store">The singleton traffic store.</param>
-    /// <param name="options">HttpLens configuration.</param>
-    public HttpLensDelegatingHandler(ITrafficStore store, IOptions<HttpLensOptions> options)
+    /// <param name="optionsMonitor">HttpLens configuration monitor supporting runtime reloading.</param>
+    public HttpLensDelegatingHandler(ITrafficStore store, IOptionsMonitor<HttpLensOptions> optionsMonitor)
     {
         _store = store;
-        _options = options.Value;
+        _optionsMonitor = optionsMonitor;
     }
 
     /// <inheritdoc />
@@ -28,6 +28,12 @@ public sealed class HttpLensDelegatingHandler : DelegatingHandler
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
+        var options = _optionsMonitor.CurrentValue;
+
+        // Master switch — pass through without capturing when disabled.
+        if (!options.IsEnabled)
+            return await base.SendAsync(request, cancellationToken);
+
         var record = new HttpTrafficRecord
         {
             Timestamp = DateTimeOffset.UtcNow,
@@ -41,10 +47,10 @@ public sealed class HttpLensDelegatingHandler : DelegatingHandler
         record.RequestHeaders = HeaderSnapshot.Capture(request.Headers, request.Content?.Headers);
         record.RequestContentType = request.Content?.Headers.ContentType?.ToString();
 
-        if (_options.CaptureRequestBody)
+        if (options.CaptureRequestBody)
         {
             var (body, size) = await BodyCapture.CaptureAsync(
-                request.Content, _options.MaxBodyCaptureSize, cancellationToken);
+                request.Content, options.MaxBodyCaptureSize, cancellationToken);
             record.RequestBody = body;
             record.RequestBodySizeBytes = size;
         }
@@ -67,10 +73,10 @@ public sealed class HttpLensDelegatingHandler : DelegatingHandler
             record.ResponseContentType = response.Content?.Headers.ContentType?.ToString();
             record.IsSuccess = response.IsSuccessStatusCode;
 
-            if (_options.CaptureResponseBody)
+            if (options.CaptureResponseBody)
             {
                 var (body, size) = await BodyCapture.CaptureAsync(
-                    response.Content, _options.MaxBodyCaptureSize, cancellationToken);
+                    response.Content, options.MaxBodyCaptureSize, cancellationToken);
                 record.ResponseBody = body;
                 record.ResponseBodySizeBytes = size;
             }
@@ -95,8 +101,8 @@ public sealed class HttpLensDelegatingHandler : DelegatingHandler
                 record.AttemptNumber = attempt;
 
             // Mask sensitive headers before storing.
-            record.RequestHeaders = SensitiveHeaderMasker.Mask(record.RequestHeaders, _options.SensitiveHeaders);
-            record.ResponseHeaders = SensitiveHeaderMasker.Mask(record.ResponseHeaders, _options.SensitiveHeaders);
+            record.RequestHeaders = SensitiveHeaderMasker.Mask(record.RequestHeaders, options.SensitiveHeaders);
+            record.ResponseHeaders = SensitiveHeaderMasker.Mask(record.ResponseHeaders, options.SensitiveHeaders);
 
             _store.Add(record);
         }

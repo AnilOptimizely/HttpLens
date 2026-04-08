@@ -29,4 +29,44 @@ public sealed class HttpLensOptions
 
     /// <summary>Whether to capture traffic from manually-created HttpClient instances via DiagnosticListener. Default: true.</summary>
     public bool EnableDiagnosticInterception { get; set; } = true;
+
+    /// <summary>
+    /// Master switch to enable/disable all HttpLens functionality.
+    /// When false, the delegating handler becomes a pass-through (no capture),
+    /// and the dashboard/API endpoints return 404.
+    /// Default: true.
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Environments where HttpLens is allowed to run.
+    /// If non-empty, HttpLens will only activate when the current hosting environment
+    /// matches one of these values (case-insensitive).
+    /// When empty (default), HttpLens runs in all environments.
+    /// Example: ["Development", "Staging"]
+    /// </summary>
+    public List<string> AllowedEnvironments { get; set; } = new();
+
+    /// <summary>
+    /// API key required to access the dashboard and API endpoints.
+    /// When null or empty, no API key authentication is required (development mode).
+    /// The key can be provided via the X-HttpLens-Key request header or ?key= query parameter.
+    /// </summary>
+    public string? ApiKey { get; set; }
+
+    /// <summary>
+    /// Name of an ASP.NET Core authorization policy to apply to all dashboard and API endpoints.
+    /// The policy must be registered via AddAuthorization() in the host application.
+    /// When null (default), no authorization policy is applied.
+    /// Example: "HttpLensAccess"
+    /// </summary>
+    public string? AuthorizationPolicy { get; set; }
+
+    /// <summary>
+    /// IP addresses or CIDR ranges allowed to access the dashboard and API.
+    /// When empty (default), all IP addresses are allowed.
+    /// Supports IPv4, IPv6, and CIDR notation.
+    /// Example: ["10.0.0.0/8", "192.168.1.0/24", "::1", "127.0.0.1"]
+    /// </summary>
+    public List<string> AllowedIpRanges { get; set; } = new();
 }
