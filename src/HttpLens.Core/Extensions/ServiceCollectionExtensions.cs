@@ -22,8 +22,6 @@ public static class ServiceCollectionExtensions
     {
         if (configure is not null)
             services.Configure(configure);
-        else
-            services.Configure<HttpLensOptions>(_ => { });
 
         services.AddSingleton<ITrafficStore, InMemoryTrafficStore>();
         services.AddTransient<HttpLensDelegatingHandler>();
@@ -66,7 +64,6 @@ public static class ServiceCollectionExtensions
             !tempOptions.AllowedEnvironments.Contains(
                 environment.EnvironmentName, StringComparer.OrdinalIgnoreCase))
         {
-            // Environment not in allowlist — don't register anything (zero overhead).
             return services;
         }
 

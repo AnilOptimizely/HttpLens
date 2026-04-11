@@ -82,33 +82,36 @@ public static class EndpointRouteBuilderExtensions
             return appBuilder.Build();
         }
 
-        // Map a catch-all route for static SPA assets through the security pipeline.
-        var catchAllPipeline = BuildSecuredHandler(async context =>
+        // Shared handler that serves static assets or falls back to index.html.
+        async Task ServeStaticOrIndex(HttpContext context)
         {
             var slug = (string?)context.Request.RouteValues["slug"] ?? string.Empty;
+
+            // Empty slug means /_httplens or /_httplens/ — serve index.html.
+            if (string.IsNullOrEmpty(slug))
+            {
+                context.Response.ContentType = "text/html; charset=utf-8";
+                await DashboardMiddleware.TryServeResourceAsync(DashboardMiddleware.IndexHtmlResourceName, context);
+                return;
+            }
+
             var resourceName = BuildResourceName(slug);
 
-            if (!DashboardMiddleware.TryServeResource(resourceName, context))
+            if (!await DashboardMiddleware.TryServeResourceAsync(resourceName, context))
             {
                 // SPA fallback — serve index.html for unknown paths.
                 context.Response.ContentType = "text/html; charset=utf-8";
-                DashboardMiddleware.TryServeResource(DashboardMiddleware.IndexHtmlResourceName, context);
+                await DashboardMiddleware.TryServeResourceAsync(DashboardMiddleware.IndexHtmlResourceName, context);
             }
+        }
 
-            await Task.CompletedTask;
-        });
+        var securedPipeline = BuildSecuredHandler(ServeStaticOrIndex);
 
-        var catchAll = endpoints.Map($"{path}/{{**slug}}", catchAllPipeline).ExcludeFromDescription();
+        // Map both /_httplens/{**slug} (catches /_httplens/ and all sub-paths)
+        var catchAll = endpoints.Map($"{path}/{{**slug}}", securedPipeline).ExcludeFromDescription();
 
-        // Map the base path itself through the security pipeline to serve index.html.
-        var basePipeline = BuildSecuredHandler(async context =>
-        {
-            context.Response.ContentType = "text/html; charset=utf-8";
-            DashboardMiddleware.TryServeResource(DashboardMiddleware.IndexHtmlResourceName, context);
-            await Task.CompletedTask;
-        });
-
-        var baseRoute = endpoints.Map(path, basePipeline).ExcludeFromDescription();
+        // Map /_httplens exactly (no trailing slash) using the same handler — no redirect.
+        var baseRoute = endpoints.Map(path, securedPipeline).ExcludeFromDescription();
 
         // Apply ASP.NET Core authorization policy to SPA routes when configured.
         if (!string.IsNullOrEmpty(authorizationPolicy))
