@@ -1,16 +1,7 @@
 ﻿using System.Net;
-using HttpLens.Core.Configuration;
-using HttpLens.Core.Storage;
-using HttpLens.Dashboard.Extensions;
 using HttpLens.Dashboard.Middleware;
 using HttpLens.Dashboard.Tests.Helpers;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace HttpLens.Dashboard.Tests;
@@ -53,7 +44,7 @@ public class IpAllowlistTests
     {
         // ::ffff:127.0.0.1 should match allowlist entry "127.0.0.1"
         var mappedIp = IPAddress.Parse("::ffff:127.0.0.1");
-        Assert.True(IpAllowlistMiddleware.IsIpAllowed(mappedIp, new[] { "127.0.0.1" }));
+        Assert.True(IpAllowlistMiddleware.IsIpAllowed(mappedIp, ["127.0.0.1"]));
     }
 
     [Fact]
@@ -61,7 +52,7 @@ public class IpAllowlistTests
     {
         // ::ffff:10.0.1.5 should match CIDR "10.0.0.0/8"
         var mappedIp = IPAddress.Parse("::ffff:10.0.1.5");
-        Assert.True(IpAllowlistMiddleware.IsIpAllowed(mappedIp, new[] { "10.0.0.0/8" }));
+        Assert.True(IpAllowlistMiddleware.IsIpAllowed(mappedIp, ["10.0.0.0/8"]));
     }
 
     [Fact]
@@ -70,7 +61,7 @@ public class IpAllowlistTests
         // Note: The middleware itself skips the check when empty (allows all).
         // The static method returns false for an empty list — the middleware
         // handles the "empty = allow all" logic before calling IsIpAllowed.
-        var result = IpAllowlistMiddleware.IsIpAllowed(IPAddress.Parse("1.2.3.4"), Array.Empty<string>());
+        var result = IpAllowlistMiddleware.IsIpAllowed(IPAddress.Parse("1.2.3.4"), []);
         Assert.False(result);
     }
 
@@ -80,7 +71,7 @@ public class IpAllowlistTests
     public async Task Dashboard_AllowedCidrRange_Returns200()
     {
         using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
-            allowedRanges: new[] { "10.0.0.0/8" },
+            allowedRanges: ["10.0.0.0/8"],
             remoteIp: IPAddress.Parse("10.0.1.5"));
 
         var client = host.GetTestClient();
@@ -119,7 +110,7 @@ public class IpAllowlistTests
     public async Task NonHttpLensRoute_BlockedIp_StillReturns200()
     {
         using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
-            allowedRanges: new[] { "10.0.0.0/8" },
+            allowedRanges: ["10.0.0.0/8"],
             remoteIp: IPAddress.Parse("192.168.1.1"),
             addSampleEndpoint: true);
 
@@ -135,7 +126,7 @@ public class IpAllowlistTests
     public async Task Dashboard_LocalhostAllowed_Returns200(string ip)
     {
         using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
-            allowedRanges: new[] { "127.0.0.1", "::1" },
+            allowedRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Parse(ip));
 
         var client = host.GetTestClient();
@@ -148,7 +139,7 @@ public class IpAllowlistTests
     public async Task Dashboard_MultipleRanges_MatchesAny()
     {
         using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
-            allowedRanges: new[] { "10.0.0.0/8", "172.16.0.0/12" },
+            allowedRanges: ["10.0.0.0/8", "172.16.0.0/12"],
             remoteIp: IPAddress.Parse("172.16.5.10"));
 
         var client = host.GetTestClient();

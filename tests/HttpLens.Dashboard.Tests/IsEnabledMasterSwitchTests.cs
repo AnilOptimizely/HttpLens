@@ -2,17 +2,11 @@
 using HttpLens.Core.Interceptors;
 using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
-using HttpLens.Dashboard.Extensions;
 using HttpLens.Dashboard.Tests.Helpers;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+using HttpLens.Dashboard.Tests.Models;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System.Net;
-using System.Net.Http.Json;
 using Xunit;
 
 namespace HttpLens.Dashboard.Tests;
@@ -182,7 +176,7 @@ public class IsEnabledMasterSwitchTests
     {
         // Start enabled
         var optionsHolder = new MutableOptionsHolder { IsEnabled = true };
-        using var host = await CreateHostWithMutableOptions(optionsHolder);
+        using var host = await CreateHostHelper.CreateHostWithMutableOptions(optionsHolder);
         var client = host.GetTestClient();
 
         // Enabled → 200
@@ -204,64 +198,6 @@ public class IsEnabledMasterSwitchTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    
-
-    /// <summary>
-    /// Creates a host where IsEnabled can be changed at runtime via the holder object.
-    /// </summary>
-    private static async Task<IHost> CreateHostWithMutableOptions(MutableOptionsHolder holder)
-    {
-        var host = new HostBuilder()
-            .ConfigureWebHost(web =>
-            {
-                web.UseTestServer();
-                web.ConfigureServices(services =>
-                {
-                    services.AddSingleton<IOptionsMonitor<HttpLensOptions>>(
-                        new DelegatingOptionsMonitor(holder));
-                    services.AddSingleton<ITrafficStore>(sp =>
-                    {
-                        var opts = Options.Create(new HttpLensOptions());
-                        return new InMemoryTrafficStore(opts);
-                    });
-                    services.AddRouting();
-                });
-                web.Configure(app =>
-                {
-                    app.UseRouting();
-                    app.UseEndpoints(ep =>
-                    {
-                        ep.MapHttpLensDashboard();
-                    });
-                });
-            })
-            .Build();
-
-        await host.StartAsync();
-        return host;
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // Helpers — DelegatingHandler tests
-    // ═══════════════════════════════════════════════════════════════
-
-    private sealed class FakeHandler : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, CancellationToken cancellationToken) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
-    }
-
-    private sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
-    {
-        private T _value;
-        public TestOptionsMonitor(T value) => _value = value;
-        public T CurrentValue => _value;
-        public T Get(string? name) => _value;
-        public void Set(T value) => _value = value;
-        public IDisposable? OnChange(Action<T, string?> listener) => null;
-    }
-
     private static (HttpLensDelegatingHandler handler, ITrafficStore store, TestOptionsMonitor<HttpLensOptions> monitor)
         BuildHandler(bool isEnabled)
     {
@@ -277,24 +213,7 @@ public class IsEnabledMasterSwitchTests
         handler.InnerHandler = new FakeHandler();
         return new HttpClient(handler);
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // Helpers — Mutable options for runtime toggle integration tests
-    // ═══════════════════════════════════════════════════════════════
-
-    private sealed class MutableOptionsHolder
-    {
-        public bool IsEnabled { get; set; } = true;
-    }
-
-    private sealed class DelegatingOptionsMonitor : IOptionsMonitor<HttpLensOptions>
-    {
-        private readonly MutableOptionsHolder _holder;
-        public DelegatingOptionsMonitor(MutableOptionsHolder holder) => _holder = holder;
-        public HttpLensOptions CurrentValue => new() { IsEnabled = _holder.IsEnabled };
-        public HttpLensOptions Get(string? name) => CurrentValue;
-        public IDisposable? OnChange(Action<HttpLensOptions, string?> listener) => null;
-    }
-
+    /// <summary>DTO for deserializing the traffic list API response.</summary>
     private sealed record TrafficListDto(int Total, HttpTrafficRecord[] Records);
+
 }

@@ -6,20 +6,15 @@ using Microsoft.Extensions.Options;
 namespace HttpLens.Core.Storage;
 
 /// <summary>Thread-safe in-memory ring-buffer store backed by <see cref="ConcurrentQueue{T}"/>.</summary>
-public sealed class InMemoryTrafficStore : ITrafficStore
+/// <param name="options">HttpLens configuration; reads <see cref="HttpLensOptions.MaxStoredRecords"/>.</param>
+public sealed class InMemoryTrafficStore(IOptions<HttpLensOptions> options) : ITrafficStore
 {
     private readonly ConcurrentQueue<HttpTrafficRecord> _queue = new();
-    private readonly int _maxRecords;
-    private readonly object _evictionLock = new();
+    private readonly int _maxRecords = options.Value.MaxStoredRecords;
+    private readonly object _evictionLock = new(); // Use a standard lock object
 
     /// <inheritdoc />
     public event Action<HttpTrafficRecord>? OnRecordAdded;
-
-    /// <param name="options">HttpLens configuration; reads <see cref="HttpLensOptions.MaxStoredRecords"/>.</param>
-    public InMemoryTrafficStore(IOptions<HttpLensOptions> options)
-    {
-        _maxRecords = options.Value.MaxStoredRecords;
-    }
 
     /// <inheritdoc />
     public int Count => _queue.Count;
@@ -40,7 +35,7 @@ public sealed class InMemoryTrafficStore : ITrafficStore
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<HttpTrafficRecord> GetAll() => _queue.ToArray();
+    public IReadOnlyList<HttpTrafficRecord> GetAll() => [.. _queue];
 
     /// <inheritdoc />
     public HttpTrafficRecord? GetById(Guid id) =>
@@ -48,7 +43,7 @@ public sealed class InMemoryTrafficStore : ITrafficStore
 
     /// <inheritdoc />
     public IReadOnlyList<HttpTrafficRecord> GetByRetryGroupId(Guid groupId) =>
-        _queue.Where(r => r.RetryGroupId == groupId).ToArray();
+        [.. _queue.Where(r => r.RetryGroupId == groupId)];
 
     /// <inheritdoc />
     public void Clear()

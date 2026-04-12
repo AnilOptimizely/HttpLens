@@ -1,20 +1,10 @@
-﻿using HttpLens.Core.Configuration;
-using HttpLens.Core.Extensions;
+﻿using HttpLens.Core.Extensions;
 using HttpLens.Core.Interceptors;
 using HttpLens.Core.Storage;
-using HttpLens.Dashboard.Extensions;
 using HttpLens.Dashboard.Tests.Helpers;
 using HttpLens.Dashboard.Tests.Models;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using System.Net;
-using System.Net.Http.Json;
 using Xunit;
 
 namespace HttpLens.Dashboard.Tests;
@@ -28,7 +18,7 @@ namespace HttpLens.Dashboard.Tests;
 /// </summary>
 public class AllowedEnvironmentsTests
 {
-    /// <summary>Test 57: Services registered when environment matches allowlist.</summary>
+    /// <summary>Test: Services registered when environment matches allowlist.</summary>
     [Fact]
     public void AddHttpLens_EnvironmentMatches_RegistersServices()
     {
@@ -37,7 +27,7 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development" };
+            opts.AllowedEnvironments = ["Development"];
         });
 
         var provider = services.BuildServiceProvider();
@@ -45,7 +35,7 @@ public class AllowedEnvironmentsTests
         Assert.NotNull(store);
     }
 
-    /// <summary>Test 58: DelegatingHandler registered when environment matches.</summary>
+    /// <summary>Test: DelegatingHandler registered when environment matches.</summary>
     [Fact]
     public void AddHttpLens_EnvironmentMatches_RegistersHandler()
     {
@@ -54,7 +44,7 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development" };
+            opts.AllowedEnvironments = ["Development"];
         });
 
         var provider = services.BuildServiceProvider();
@@ -62,7 +52,7 @@ public class AllowedEnvironmentsTests
         Assert.NotNull(handler);
     }
 
-    /// <summary>Test 59: Services NOT registered when environment is not in allowlist.</summary>
+    /// <summary>Test: Services NOT registered when environment is not in allowlist.</summary>
     [Fact]
     public void AddHttpLens_EnvironmentNotInList_DoesNotRegisterServices()
     {
@@ -71,7 +61,7 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development" };
+            opts.AllowedEnvironments = ["Development"];
         });
 
         var provider = services.BuildServiceProvider();
@@ -79,7 +69,7 @@ public class AllowedEnvironmentsTests
         Assert.Null(store);
     }
 
-    /// <summary>Test 60: Handler NOT registered when environment excluded.</summary>
+    /// <summary>Test: Handler NOT registered when environment excluded.</summary>
     [Fact]
     public void AddHttpLens_EnvironmentNotInList_DoesNotRegisterHandler()
     {
@@ -88,7 +78,7 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development" };
+            opts.AllowedEnvironments = ["Development"];
         });
 
         var provider = services.BuildServiceProvider();
@@ -96,7 +86,7 @@ public class AllowedEnvironmentsTests
         Assert.Null(handler);
     }
 
-    /// <summary>Test 61: Empty allowlist → services registered in any environment.</summary>
+    /// <summary>Test: Empty allowlist → services registered in any environment.</summary>
     [Theory]
     [InlineData("Development")]
     [InlineData("Staging")]
@@ -114,7 +104,7 @@ public class AllowedEnvironmentsTests
         Assert.NotNull(store);
     }
 
-    /// <summary>Test 62: Multiple environments — "Development" matches.</summary>
+    /// <summary>Test: Multiple environments — "Development" matches.</summary>
     [Fact]
     public void AddHttpLens_MultipleAllowed_MatchesDevelopment()
     {
@@ -123,14 +113,14 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development", "Staging" };
+            opts.AllowedEnvironments = ["Development", "Staging"];
         });
 
         var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetService<ITrafficStore>());
     }
 
-    /// <summary>Test 63: Multiple environments — "Staging" matches.</summary>
+    /// <summary>Test: Multiple environments — "Staging" matches.</summary>
     [Fact]
     public void AddHttpLens_MultipleAllowed_MatchesStaging()
     {
@@ -139,14 +129,14 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development", "Staging" };
+            opts.AllowedEnvironments = ["Development", "Staging"];
         });
 
         var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetService<ITrafficStore>());
     }
 
-    /// <summary>Test 64: Multiple environments — "Production" not in list → no registration.</summary>
+    /// <summary>Test: Multiple environments — "Production" not in list → no registration.</summary>
     [Fact]
     public void AddHttpLens_MultipleAllowed_ProductionExcluded()
     {
@@ -155,14 +145,14 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development", "Staging" };
+            opts.AllowedEnvironments = ["Development", "Staging"];
         });
 
         var provider = services.BuildServiceProvider();
         Assert.Null(provider.GetService<ITrafficStore>());
     }
 
-    /// <summary>Test 65: Environment matching is case-insensitive.</summary>
+    /// <summary>Test: Environment matching is case-insensitive.</summary>
     [Theory]
     [InlineData("development", "Development")]
     [InlineData("DEVELOPMENT", "Development")]
@@ -175,22 +165,18 @@ public class AllowedEnvironmentsTests
 
         services.AddHttpLens(env, opts =>
         {
-            opts.AllowedEnvironments = new List<string> { allowedEnv };
+            opts.AllowedEnvironments = [allowedEnv];
         });
 
         var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetService<ITrafficStore>());
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 7.6 — Integration: Full pipeline with TestServer
-    // ═══════════════════════════════════════════════════════════════
-
-    /// <summary>Test 66: Dashboard accessible when environment is in allowlist.</summary>
+    /// <summary>Test: Dashboard accessible when environment is in allowlist.</summary>
     [Fact]
     public async Task Integration_AllowedEnvironment_DashboardReturns200()
     {
-        using var host =  await CreateHostHelper.CreateIntegrationHost("Development", new[] { "Development" },
+        using var host =  await CreateHostHelper.CreateIntegrationHost("Development", ["Development"],
             mapDashboard: true);
         var client = host.GetTestClient();
 
@@ -199,7 +185,7 @@ public class AllowedEnvironmentsTests
     }
 
     /// <summary>
-    /// Test 67: App routes work when environment is NOT in allowlist.
+    /// Test: App routes work when environment is NOT in allowlist.
     /// When excluded, AddHttpLens skips registration so MapHttpLensDashboard must NOT be called
     /// (ITrafficStore won't be in DI). This mirrors the real-world pattern:
     ///   if (env.IsDevelopment()) app.MapHttpLensDashboard();
@@ -207,7 +193,7 @@ public class AllowedEnvironmentsTests
     [Fact]
     public async Task Integration_ExcludedEnvironment_AppRoutesStillWork()
     {
-        using var host = await CreateHostHelper.CreateIntegrationHost("Production", new[] { "Development" },
+        using var host = await CreateHostHelper.CreateIntegrationHost("Production", ["Development"],
             mapDashboard: false, addSampleEndpoint: true);
         var client = host.GetTestClient();
 
@@ -216,12 +202,12 @@ public class AllowedEnvironmentsTests
     }
 
     /// <summary>
-    /// Test 67b: When excluded, HttpLens routes are not mapped (404).
+    /// Test: When excluded, HttpLens routes are not mapped (404).
     /// </summary>
     [Fact]
     public async Task Integration_ExcludedEnvironment_DashboardNotMapped()
     {
-        using var host = await CreateHostHelper.CreateIntegrationHost("Production", new[] { "Development" },
+        using var host = await CreateHostHelper.CreateIntegrationHost("Production", ["Development"],
             mapDashboard: false, addSampleEndpoint: true);
         var client = host.GetTestClient();
 
@@ -229,11 +215,11 @@ public class AllowedEnvironmentsTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    /// <summary>Test 68: Empty AllowedEnvironments in Production → dashboard works.</summary>
+    /// <summary>Test: Empty AllowedEnvironments in Production → dashboard works.</summary>
     [Fact]
     public async Task Integration_EmptyAllowedEnvironments_DashboardWorksEverywhere()
     {
-        using var host = await CreateHostHelper.CreateIntegrationHost("Production", Array.Empty<string>(),
+        using var host = await CreateHostHelper.CreateIntegrationHost("Production", [],
             mapDashboard: true);
         var client = host.GetTestClient();
 
@@ -241,7 +227,7 @@ public class AllowedEnvironmentsTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    /// <summary>Test 69: AddHttpLens() without environment parameter always registers.</summary>
+    /// <summary>Test: AddHttpLens() without environment parameter always registers.</summary>
     [Fact]
     public void AddHttpLens_WithoutEnvironment_AlwaysRegisters()
     {
@@ -250,7 +236,7 @@ public class AllowedEnvironmentsTests
         // Calling the overload without IHostEnvironment
         services.AddHttpLens(opts =>
         {
-            opts.AllowedEnvironments = new List<string> { "Development" };
+            opts.AllowedEnvironments = ["Development"];
         });
 
         // AllowedEnvironments is set but not checked by this overload
@@ -258,8 +244,8 @@ public class AllowedEnvironmentsTests
         Assert.NotNull(provider.GetService<ITrafficStore>());
     }
 
-    private static IHostEnvironment CreateEnvironment(string environmentName)
+    private static FakeHostEnvironment CreateEnvironment(string environmentName)
     {
         return new FakeHostEnvironment { EnvironmentName = environmentName };
-    }    
+    }
 }

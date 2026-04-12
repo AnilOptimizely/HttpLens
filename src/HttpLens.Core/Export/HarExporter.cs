@@ -23,7 +23,7 @@ public static class HarExporter
             {
                 Version = "1.2",
                 Creator = new HarCreator { Name = "HttpLens", Version = "1.0.0" },
-                Entries = records.Select(ToEntry).ToList()
+                Entries = [.. records.Select(ToEntry)]
             }
         };
 
@@ -91,9 +91,9 @@ public static class HarExporter
         {
             var uri = new Uri(url);
             var query = uri.Query.TrimStart('?');
-            if (string.IsNullOrEmpty(query)) return new List<HarNameValue>();
+            if (string.IsNullOrEmpty(query)) return [];
 
-            return query.Split('&')
+            return [.. query.Split('&')
                 .Select(pair =>
                 {
                     var idx = pair.IndexOf('=');
@@ -104,12 +104,11 @@ public static class HarExporter
                             Value = Uri.UnescapeDataString(pair[(idx + 1)..])
                         }
                         : new HarNameValue { Name = Uri.UnescapeDataString(pair), Value = "" };
-                })
-                .ToList();
+                })];
         }
         catch
         {
-            return new List<HarNameValue>();
+            return [];
         }
     }
 
@@ -130,80 +129,4 @@ public static class HarExporter
         503 => "Service Unavailable",
         _ => ""
     };
-
-    // ── HAR model classes ────────────────────────────────────────────────────
-
-    private sealed class HarRoot { public HarLog Log { get; set; } = new(); }
-
-    private sealed class HarLog
-    {
-        public string Version { get; set; } = "1.2";
-        public HarCreator Creator { get; set; } = new();
-        public List<HarEntry> Entries { get; set; } = new();
-    }
-
-    private sealed class HarCreator
-    {
-        public string Name { get; set; } = "";
-        public string Version { get; set; } = "";
-    }
-
-    private sealed class HarEntry
-    {
-        public string StartedDateTime { get; set; } = "";
-        public double Time { get; set; }
-        public HarRequest Request { get; set; } = new();
-        public HarResponse Response { get; set; } = new();
-        public HarCache Cache { get; set; } = new();
-        public HarTimings Timings { get; set; } = new();
-    }
-
-    private sealed class HarRequest
-    {
-        public string Method { get; set; } = "";
-        public string Url { get; set; } = "";
-        public string HttpVersion { get; set; } = "";
-        public List<HarNameValue> Headers { get; set; } = new();
-        public List<HarNameValue> QueryString { get; set; } = new();
-        public long BodySize { get; set; }
-        public HarPostData? PostData { get; set; }
-    }
-
-    private sealed class HarResponse
-    {
-        public int Status { get; set; }
-        public string StatusText { get; set; } = "";
-        public string HttpVersion { get; set; } = "";
-        public List<HarNameValue> Headers { get; set; } = new();
-        public HarContent Content { get; set; } = new();
-        public long BodySize { get; set; }
-    }
-
-    private sealed class HarContent
-    {
-        public long Size { get; set; }
-        public string MimeType { get; set; } = "";
-        public string? Text { get; set; }
-    }
-
-    private sealed class HarPostData
-    {
-        public string MimeType { get; set; } = "";
-        public string? Text { get; set; }
-    }
-
-    private sealed class HarCache { }
-
-    private sealed class HarTimings
-    {
-        public double Send { get; set; }
-        public double Wait { get; set; }
-        public double Receive { get; set; }
-    }
-
-    private sealed class HarNameValue
-    {
-        public string Name { get; set; } = "";
-        public string Value { get; set; } = "";
-    }
 }

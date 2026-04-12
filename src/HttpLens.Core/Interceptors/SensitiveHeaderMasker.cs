@@ -20,7 +20,7 @@ public static class SensitiveHeaderMasker
         {
             if (sensitiveHeaderNames.Contains(name))
             {
-                result[name] = values.Select(MaskValue).ToArray();
+                result[name] = [.. values.Select(MaskValue)];
             }
             else
             {
