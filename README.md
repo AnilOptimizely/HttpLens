@@ -58,6 +58,98 @@ builder.Services.AddHttpLens(options =>
 });
 ```
 
+## Security
+
+By default HttpLens applies **no security** — the dashboard is publicly accessible. This preserves the zero-config developer experience. Each security layer is opt-in.
+
+### Security Layers
+
+| Layer | Option | Default | Behaviour |
+|---|---|---|---|
+| **Master switch** | `IsEnabled` | `true` | When `false`, capture stops and dashboard returns 404 |
+| **Environment guard** | `AllowedEnvironments` | `[]` (all) | Only register services in matching environments |
+| **API key** | `ApiKey` | `null` (off) | Require `X-HttpLens-Key` header or `?key=` query param |
+| **IP allowlist** | `AllowedIpRanges` | `[]` (all) | Restrict by IP address or CIDR range |
+| **Auth policy** | `AuthorizationPolicy` | `null` (off) | Apply any registered ASP.NET Core auth policy |
+
+### Configuration Examples
+
+**Restrict to development only:**
+
+```csharp
+// Automatically skips registration in Production
+builder.Services.AddHttpLens(builder.Environment, options =>
+{
+    options.AllowedEnvironments.AddRange(["Development", "Staging"]);
+});
+```
+
+**Protect with an API key:**
+
+```csharp
+builder.Services.AddHttpLens(options =>
+{
+    options.ApiKey = "my-secret-key";
+});
+```
+
+Then access the dashboard at `/_httplens?key=my-secret-key`. The key is stored in `sessionStorage` so subsequent API calls include it automatically via the `X-HttpLens-Key` header.
+
+**Restrict by IP:**
+
+```csharp
+builder.Services.AddHttpLens(options =>
+{
+    options.AllowedIpRanges.AddRange(["127.0.0.1", "10.0.0.0/8", "::1"]);
+});
+```
+
+**Disable in production via `appsettings.json`:**
+
+`appsettings.Development.json`:
+```json
+{ "HttpLens": { "IsEnabled": true } }
+```
+
+`appsettings.Production.json`:
+```json
+{ "HttpLens": { "IsEnabled": false } }
+```
+
+Then bind in `Program.cs`:
+
+```csharp
+builder.Services.AddHttpLens(options =>
+    builder.Configuration.GetSection("HttpLens").Bind(options));
+```
+
+**Combined example (recommended for shared/staging environments):**
+
+```csharp
+builder.Services.AddHttpLens(builder.Environment, options =>
+{
+    builder.Configuration.GetSection("HttpLens").Bind(options);
+
+    // Override: force-disable in production regardless of config
+    if (builder.Environment.IsProduction())
+        options.IsEnabled = false;
+});
+```
+
+### Middleware Order
+
+Security checks are applied automatically inside `MapHttpLensDashboard()` in this order:
+
+1. **EnabledGuard** — returns 404 if `IsEnabled = false`
+2. **IpAllowlist** — returns 403 if client IP is not in `AllowedIpRanges`
+3. **ApiKey** — returns 401 if `X-HttpLens-Key` / `?key=` is missing or wrong
+4. **Authorization policy** — evaluated by ASP.NET Core auth middleware
+5. Endpoint handler
+
+No `UseMiddleware` calls are needed in your `Program.cs`.
+
+> **Note:** `MapHttpLensDashboard()` automatically applies all security checks (enabled guard, IP allowlist, API key, and authorization policy) to both the SPA and API routes. If you call `MapHttpLensApi()` directly, only the `authorizationPolicy` parameter (if provided) is applied — IP allowlist and API key checks are skipped.
+
 ## Polly Retry Detection
 
 To group Polly retry attempts in the dashboard:

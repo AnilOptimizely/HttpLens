@@ -69,6 +69,17 @@ public class DiagnosticInterceptorTests : IDisposable
 
     private string BaseUrl => $"http://127.0.0.1:{_port}";
 
+    /// <summary>Minimal <see cref="IOptionsMonitor{TOptions}"/> for testing.</summary>
+    private sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
+    {
+        private T _value;
+        public TestOptionsMonitor(T value) => _value = value;
+        public T CurrentValue => _value;
+        public T Get(string? name) => _value;
+        public void Set(T value) => _value = value;
+        public IDisposable? OnChange(Action<T, string?> listener) => null;
+    }
+
     private static (DiagnosticInterceptor interceptor, InMemoryTrafficStore store) CreateInterceptor(
         Action<HttpLensOptions>? configure = null)
     {
@@ -76,7 +87,8 @@ public class DiagnosticInterceptorTests : IDisposable
         configure?.Invoke(options);
         var wrappedOptions = Options.Create(options);
         var store = new InMemoryTrafficStore(wrappedOptions);
-        var interceptor = new DiagnosticInterceptor(store, wrappedOptions);
+        var monitor = new TestOptionsMonitor<HttpLensOptions>(options);
+        var interceptor = new DiagnosticInterceptor(store, monitor);
         return (interceptor, store);
     }
 
@@ -121,7 +133,8 @@ public class DiagnosticInterceptorTests : IDisposable
             // Build a handler chain that mimics IHttpClientFactory:
             // HttpLensDelegatingHandler -> SocketsHttpHandler (real network).
             var options = new HttpLensOptions();
-            var handler = new HttpLensDelegatingHandler(store, Options.Create(options))
+            var monitor = new TestOptionsMonitor<HttpLensOptions>(options);
+            var handler = new HttpLensDelegatingHandler(store, monitor)
             {
                 InnerHandler = new SocketsHttpHandler()
             };

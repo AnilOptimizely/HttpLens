@@ -17,7 +17,7 @@ internal static class DashboardMiddleware
     };
 
     /// <summary>Tries to serve an embedded resource. Returns false when the resource isn't found.</summary>
-    public static bool TryServeResource(string resourcePath, HttpContext context)
+    public static async Task<bool> TryServeResourceAsync(string resourcePath, HttpContext context)
     {
         var stream = _assembly.GetManifestResourceStream(resourcePath);
         if (stream is null) return false;
@@ -27,8 +27,8 @@ internal static class DashboardMiddleware
             ? mime
             : "application/octet-stream";
 
-        using (stream)
-            stream.CopyTo(context.Response.Body);
+        await using (stream)
+            await stream.CopyToAsync(context.Response.Body);
 
         return true;
     }

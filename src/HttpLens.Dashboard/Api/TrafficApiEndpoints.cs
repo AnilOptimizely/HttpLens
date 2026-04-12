@@ -13,9 +13,23 @@ public static class TrafficApiEndpoints
     /// Maps the traffic JSON endpoints under <c>{basePath}/api</c>.
     /// All endpoints are excluded from OpenAPI/Swagger descriptions.
     /// </summary>
-    public static void MapHttpLensApi(this IEndpointRouteBuilder endpoints, string basePath)
+    /// <param name="endpoints">The endpoint route builder.</param>
+    /// <param name="basePath">The base URL path of the HttpLens dashboard.</param>
+    /// <param name="authorizationPolicy">
+    /// Optional ASP.NET Core authorization policy name to apply to all API endpoints.
+    /// When <see langword="null"/>, no authorization is required.
+    /// </param>
+    /// <returns>The <see cref="RouteGroupBuilder"/> for the API group, allowing further customisation.</returns>
+    public static RouteGroupBuilder MapHttpLensApi(
+        this IEndpointRouteBuilder endpoints,
+        string basePath,
+        string? authorizationPolicy = null)
     {
         var apiGroup = endpoints.MapGroup($"{basePath}/api");
+
+        // Apply ASP.NET Core authorization policy to entire API group when configured.
+        if (!string.IsNullOrEmpty(authorizationPolicy))
+            apiGroup.RequireAuthorization(authorizationPolicy);
 
         // GET /api/traffic?skip=0&take=100
         apiGroup.MapGet("/traffic", (ITrafficStore store, int skip = 0, int take = 100) =>
@@ -86,5 +100,7 @@ public static class TrafficApiEndpoints
             }
             return Results.Text(HarExporter.Export(records), "application/json");
         }).ExcludeFromDescription();
+
+        return apiGroup;
     }
 }

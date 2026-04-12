@@ -27,14 +27,26 @@ public class HttpLensDelegatingHandlerTests
         }
     }
 
-    private static (HttpLensDelegatingHandler handler, ITrafficStore store) Build(
+    /// <summary>Minimal <see cref="IOptionsMonitor{TOptions}"/> for testing.</summary>
+    private sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
+    {
+        private T _value;
+        public TestOptionsMonitor(T value) => _value = value;
+        public T CurrentValue => _value;
+        public T Get(string? name) => _value;
+        public void Set(T value) => _value = value;
+        public IDisposable? OnChange(Action<T, string?> listener) => null;
+    }
+
+    private static (HttpLensDelegatingHandler handler, ITrafficStore store, TestOptionsMonitor<HttpLensOptions> monitor) Build(
         Action<HttpLensOptions>? configure = null)
     {
         var options = new HttpLensOptions();
         configure?.Invoke(options);
         var store = new InMemoryTrafficStore(Options.Create(options));
-        var handler = new HttpLensDelegatingHandler(store, Options.Create(options));
-        return (handler, store);
+        var monitor = new TestOptionsMonitor<HttpLensOptions>(options);
+        var handler = new HttpLensDelegatingHandler(store, monitor);
+        return (handler, store, monitor);
     }
 
     private static HttpClient CreateClient(HttpLensDelegatingHandler handler, HttpMessageHandler inner)
@@ -46,7 +58,7 @@ public class HttpLensDelegatingHandlerTests
     [Fact]
     public async Task CapturesSuccessfulGetRequest()
     {
-        var (handler, store) = Build();
+        var (handler, store, _) = Build();
         var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("{}", Encoding.UTF8, "application/json")
@@ -67,7 +79,7 @@ public class HttpLensDelegatingHandlerTests
     [Fact]
     public async Task CapturesPostRequestWithBody()
     {
-        var (handler, store) = Build();
+        var (handler, store, _) = Build();
         var response = new HttpResponseMessage(HttpStatusCode.Created);
         var client = CreateClient(handler, new FakeHandler(response));
 
@@ -83,7 +95,7 @@ public class HttpLensDelegatingHandlerTests
     [Fact]
     public async Task CapturesExceptionAndRethrows()
     {
-        var (handler, store) = Build();
+        var (handler, store, _) = Build();
         var ex = new HttpRequestException("connection refused");
         var client = CreateClient(handler, new FakeHandler(ex));
 
@@ -99,7 +111,7 @@ public class HttpLensDelegatingHandlerTests
     [Fact]
     public async Task RespectsCaptureFlagsWhenDisabled()
     {
-        var (handler, store) = Build(o =>
+        var (handler, store, _) = Build(o =>
         {
             o.CaptureRequestBody = false;
             o.CaptureResponseBody = false;
@@ -122,7 +134,7 @@ public class HttpLensDelegatingHandlerTests
     public async Task TruncatesLargeBody()
     {
         const int maxSize = 100;
-        var (handler, store) = Build(o => o.MaxBodyCaptureSize = maxSize);
+        var (handler, store, _) = Build(o => o.MaxBodyCaptureSize = maxSize);
         var bigBody = new string('x', 1000);
         var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
@@ -135,5 +147,49 @@ public class HttpLensDelegatingHandlerTests
         var record = store.GetAll()[0];
         Assert.NotNull(record.ResponseBody);
         Assert.Contains("TRUNCATED", record.ResponseBody);
+    }
+
+    [Fact]
+    public async Task IsEnabledFalse_PassesThroughWithoutCapturing()
+    {
+        var (handler, store, _) = Build(o => o.IsEnabled = false);
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        var result = await client.GetAsync("https://example.com/test");
+
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        Assert.Empty(store.GetAll());
+    }
+
+    [Fact]
+    public async Task IsEnabledTrue_CapturesNormally()
+    {
+        var (handler, store, _) = Build(o => o.IsEnabled = true);
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://example.com/test");
+
+        Assert.Single(store.GetAll());
+    }
+
+    [Fact]
+    public async Task RuntimeToggle_WhenDisabledMidTest_CaptureStops()
+    {
+        var (handler, store, monitor) = Build(o => o.IsEnabled = true);
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        // Capture while enabled.
+        await client.GetAsync("https://example.com/first");
+        Assert.Single(store.GetAll());
+
+        // Disable at runtime.
+        monitor.Set(new HttpLensOptions { IsEnabled = false });
+
+        // Should pass through without capturing.
+        await client.GetAsync("https://example.com/second");
+        Assert.Single(store.GetAll()); // still only one record
     }
 }

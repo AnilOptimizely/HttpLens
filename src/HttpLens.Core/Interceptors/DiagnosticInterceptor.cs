@@ -28,24 +28,24 @@ internal sealed class DiagnosticInterceptor
     : IObserver<DiagnosticListener>, IObserver<KeyValuePair<string, object?>>, IDisposable
 {
     private readonly ITrafficStore _store;
-    private readonly HttpLensOptions _options;
+    private readonly IOptionsMonitor<HttpLensOptions> _optionsMonitor;
     private readonly ConcurrentDictionary<HttpRequestMessage, InFlightRecord> _inFlight = new();
 
     private IDisposable? _allListenersSubscription;
     private IDisposable? _httpListenerSubscription;
 
     /// <param name="store">The singleton traffic store.</param>
-    /// <param name="options">HttpLens configuration.</param>
-    public DiagnosticInterceptor(ITrafficStore store, IOptions<HttpLensOptions> options)
+    /// <param name="optionsMonitor">HttpLens configuration monitor supporting runtime reloading.</param>
+    public DiagnosticInterceptor(ITrafficStore store, IOptionsMonitor<HttpLensOptions> optionsMonitor)
     {
         _store = store;
-        _options = options.Value;
+        _optionsMonitor = optionsMonitor;
     }
 
     /// <summary>Subscribes to <see cref="DiagnosticListener.AllListeners"/> to begin capturing traffic.</summary>
     public void Start()
     {
-        if (!_options.EnableDiagnosticInterception)
+        if (!_optionsMonitor.CurrentValue.EnableDiagnosticInterception)
             return;
 
         _allListenersSubscription = DiagnosticListener.AllListeners.Subscribe(this);
@@ -92,6 +92,10 @@ internal sealed class DiagnosticInterceptor
         var request = GetProperty<HttpRequestMessage>(payload, "Request");
         if (request is null) return;
 
+        // Skip capturing when the master switch is off.
+        if (!_optionsMonitor.CurrentValue.IsEnabled)
+            return;
+
         // Deduplication — already captured by HttpLensDelegatingHandler.
         if (request.Options.TryGetValue(
                 new HttpRequestOptionsKey<bool>("HttpLens.CapturedByHandler"), out var captured) && captured)
@@ -99,7 +103,7 @@ internal sealed class DiagnosticInterceptor
 
         // Self-filtering — skip dashboard requests to avoid feedback loops.
         var uri = request.RequestUri?.ToString() ?? string.Empty;
-        if (uri.Contains(_options.DashboardPath, StringComparison.OrdinalIgnoreCase))
+        if (uri.Contains(_optionsMonitor.CurrentValue.DashboardPath, StringComparison.OrdinalIgnoreCase))
             return;
 
         var record = new HttpTrafficRecord
@@ -148,8 +152,8 @@ internal sealed class DiagnosticInterceptor
         }
 
         // Mask sensitive headers before storing.
-        record.RequestHeaders = SensitiveHeaderMasker.Mask(record.RequestHeaders, _options.SensitiveHeaders);
-        record.ResponseHeaders = SensitiveHeaderMasker.Mask(record.ResponseHeaders, _options.SensitiveHeaders);
+        record.RequestHeaders = SensitiveHeaderMasker.Mask(record.RequestHeaders, _optionsMonitor.CurrentValue.SensitiveHeaders);
+        record.ResponseHeaders = SensitiveHeaderMasker.Mask(record.ResponseHeaders, _optionsMonitor.CurrentValue.SensitiveHeaders);
 
         _store.Add(record);
     }
@@ -176,8 +180,8 @@ internal sealed class DiagnosticInterceptor
         record.Exception = exception?.ToString();
 
         // Mask sensitive headers before storing.
-        record.RequestHeaders = SensitiveHeaderMasker.Mask(record.RequestHeaders, _options.SensitiveHeaders);
-        record.ResponseHeaders = SensitiveHeaderMasker.Mask(record.ResponseHeaders, _options.SensitiveHeaders);
+        record.RequestHeaders = SensitiveHeaderMasker.Mask(record.RequestHeaders, _optionsMonitor.CurrentValue.SensitiveHeaders);
+        record.ResponseHeaders = SensitiveHeaderMasker.Mask(record.ResponseHeaders, _optionsMonitor.CurrentValue.SensitiveHeaders);
 
         _store.Add(record);
     }
