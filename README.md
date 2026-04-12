@@ -62,6 +62,8 @@ builder.Services.AddHttpLens(options =>
 
 By default HttpLens applies **no security** — the dashboard is publicly accessible. This preserves the zero-config developer experience. Each security layer is opt-in.
 
+For a comprehensive security guide, see [Security Documentation](docs/SECURITY.md).
+
 ### Security Layers
 
 | Layer | Option | Default | Behaviour |

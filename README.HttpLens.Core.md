@@ -1,6 +1,6 @@
 # HttpLens.Core
 
-The core interception and storage engine for [HttpLens](https://github.com/AnilOptimizely/HttpClientStorybook) — a developer tool that captures every outbound HTTP call your .NET app makes.
+The core interception and storage engine for [HttpLens](https://github.com/AnilOptimizely/HttpLens) — a developer tool that captures every outbound HTTP call your .NET app makes.
 
 > **Most users should install the [`HttpLens`](https://www.nuget.org/packages/HttpLens) meta-package**, which bundles both `HttpLens.Core` and `HttpLens.Dashboard`. Install `HttpLens.Core` directly only if you want the capture engine without the embedded dashboard UI.
 
@@ -57,6 +57,12 @@ builder.Services.AddHttpLens(options =>
     options.CaptureResponseBody = true;    // Capture response bodies (default: true)
     options.EnableDiagnosticInterception = true; // Capture manual HttpClient (default: true)
 
+    options.IsEnabled = true;                     // Master switch (default: true)
+    options.AllowedEnvironments.AddRange(["Development", "Staging"]); // Env guard
+    options.ApiKey = "my-secret-key";             // API key protection
+    options.AuthorizationPolicy = "HttpLensAccess"; // ASP.NET Core policy
+    options.AllowedIpRanges.AddRange(["127.0.0.1", "10.0.0.0/8"]); // IP allowlist
+
     // Headers that are masked before storage
     options.SensitiveHeaders.Add("X-Custom-Secret");
 });
@@ -71,6 +77,50 @@ builder.Services.AddHttpLens(options =>
 | `CaptureRequestBody` | `true` | Whether to capture and store request bodies |
 | `CaptureResponseBody` | `true` | Whether to capture and store response bodies |
 | `EnableDiagnosticInterception` | `true` | Capture traffic from manually-created `HttpClient` instances |
+| `IsEnabled` | `true` | Master switch — when `false`, capture stops and dashboard returns 404 |
+| `AllowedEnvironments` | `[]` (all) | Only register services in matching environments |
+| `ApiKey` | `null` (off) | Require `X-HttpLens-Key` header or `?key=` query param |
+| `AuthorizationPolicy` | `null` (off) | Apply a named ASP.NET Core authorization policy |
+| `AllowedIpRanges` | `[]` (all) | Restrict by IPv4, IPv6, or CIDR range |
+
+### Environment-Aware Registration
+
+Use the `AddHttpLens(IHostEnvironment, ...)` overload to skip service registration entirely when the current environment is not in `AllowedEnvironments`. This means zero overhead — no handlers, no storage, no routes:
+
+```csharp
+builder.Services.AddHttpLens(builder.Environment, options =>
+{
+    options.AllowedEnvironments.AddRange(["Development", "Staging"]);
+});
+```
+
+When the environment is excluded, `ITrafficStore` is not registered. Guard `MapHttpLensDashboard()` accordingly:
+
+```csharp
+if (app.Services.GetService<ITrafficStore>() != null)
+    app.MapHttpLensDashboard();
+```
+
+### Runtime Configuration with `IOptionsMonitor<T>`
+
+All options except `AllowedEnvironments` support runtime reloading via `IOptionsMonitor<T>`. If you set `reloadOnChange: true` on your configuration source, changing `IsEnabled` or `ApiKey` in `appsettings.json` takes effect immediately — no restart required:
+
+```json
+// appsettings.json
+{
+  "HttpLens": {
+    "IsEnabled": false,
+    "ApiKey": "my-secret-key"
+  }
+}
+```
+
+```csharp
+builder.Services.AddHttpLens(options =>
+    builder.Configuration.GetSection("HttpLens").Bind(options));
+```
+
+> **Note:** `AllowedEnvironments` is evaluated once at registration time. Changing it at runtime has no effect.
 
 ## Accessing Captured Traffic Programmatically
 
