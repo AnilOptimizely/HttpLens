@@ -1,10 +1,9 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using HttpLens.Core.Configuration;
+﻿using HttpLens.Core.Configuration;
 using HttpLens.Core.Interceptors;
 using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
 using HttpLens.Dashboard.Extensions;
+using HttpLens.Dashboard.Tests.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,38 +11,37 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System.Net;
+using System.Net.Http.Json;
 using Xunit;
 
 namespace HttpLens.Dashboard.Tests;
 
 /// <summary>
-/// Phase 3: IsEnabled Master Switch tests.
+/// IsEnabled Master Switch tests.
 /// Verifies that when IsEnabled=false, the dashboard returns 404, API returns 404,
 /// traffic capture is bypassed, and app routes continue to work normally.
 /// Also tests runtime toggle via IOptionsMonitor.
 /// </summary>
 public class IsEnabledMasterSwitchTests
 {
-    // ═══════════════════════════════════════════════════════════════
-    // 3.1 — IsEnabled: true (default)
-    // ═══════════════════════════════════════════════════════════════
-
-    /// <summary>Test 11: Dashboard returns 200 when enabled.</summary>
+    
+    /// <summary>Dashboard returns 200 when enabled.</summary>
     [Fact]
     public async Task Dashboard_IsEnabledTrue_Returns200()
     {
-        using var host = await CreateHost(isEnabled: true);
+        using var host = await CreateHostHelper.CreateHostSampleEndpoint(isEnabled: true);
         var client = host.GetTestClient();
 
         var response = await client.GetAsync("/_httplens");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    /// <summary>Test 12: API returns 200 with traffic data when enabled.</summary>
+    /// <summary>API returns 200 with traffic data when enabled.</summary>
     [Fact]
     public async Task Api_IsEnabledTrue_Returns200WithTrafficData()
     {
-        using var host = await CreateHost(isEnabled: true);
+        using var host = await CreateHostHelper.CreateHostSampleEndpoint(isEnabled: true);
         var client = host.GetTestClient();
 
         var response = await client.GetAsync("/_httplens/api/traffic");
@@ -53,11 +51,11 @@ public class IsEnabledMasterSwitchTests
         Assert.NotNull(body);
     }
 
-    /// <summary>Test 13: Traffic is captured when enabled.</summary>
+    /// <summary>Traffic is captured when enabled.</summary>
     [Fact]
     public async Task TrafficCapture_IsEnabledTrue_RecordsCaptured()
     {
-        using var host = await CreateHost(isEnabled: true);
+        using var host = await CreateHostHelper.CreateHostSampleEndpoint(isEnabled: true);
         var store = host.Services.GetRequiredService<ITrafficStore>();
 
         store.Add(new HttpTrafficRecord
@@ -69,57 +67,49 @@ public class IsEnabledMasterSwitchTests
         Assert.Single(store.GetAll());
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 3.2 — IsEnabled: false
-    // ═══════════════════════════════════════════════════════════════
-
-    /// <summary>Test 14: Dashboard returns 404 when disabled.</summary>
+    /// <summary>Dashboard returns 404 when disabled.</summary>
     [Fact]
     public async Task Dashboard_IsEnabledFalse_Returns404()
     {
-        using var host = await CreateHost(isEnabled: false);
+        using var host = await CreateHostHelper.CreateHostSampleEndpoint(isEnabled: false);
         var client = host.GetTestClient();
 
         var response = await client.GetAsync("/_httplens");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    /// <summary>Test 15: API returns 404 when disabled.</summary>
+    /// <summary>API returns 404 when disabled.</summary>
     [Fact]
     public async Task Api_IsEnabledFalse_Returns404()
     {
-        using var host = await CreateHost(isEnabled: false);
+        using var host = await CreateHostHelper.CreateHostSampleEndpoint(isEnabled: false);
         var client = host.GetTestClient();
 
         var response = await client.GetAsync("/_httplens/api/traffic");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    /// <summary>Test 16: App routes still work when HttpLens is disabled.</summary>
+    /// <summary>App routes still work when HttpLens is disabled.</summary>
     [Fact]
     public async Task AppRoutes_IsEnabledFalse_StillWork()
     {
-        using var host = await CreateHost(isEnabled: false, addSampleEndpoint: true);
+        using var host = await CreateHostHelper.CreateHostSampleEndpoint(isEnabled: false, addSampleEndpoint: true);
         var client = host.GetTestClient();
 
         var response = await client.GetAsync("/api/weather");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    /// <summary>Test 17: Dashboard sub-paths also return 404 when disabled.</summary>
+    /// <summary>Test: Dashboard sub-paths also return 404 when disabled.</summary>
     [Fact]
     public async Task DashboardSubPaths_IsEnabledFalse_Return404()
     {
-        using var host = await CreateHost(isEnabled: false);
+        using var host = await CreateHostHelper.CreateHostSampleEndpoint(isEnabled: false);
         var client = host.GetTestClient();
 
         var response = await client.GetAsync("/_httplens/js/some.js");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 3.3 — DelegatingHandler respects IsEnabled
-    // ═══════════════════════════════════════════════════════════════
 
     /// <summary>Test: Handler captures traffic when enabled.</summary>
     [Fact]
@@ -147,11 +137,7 @@ public class IsEnabledMasterSwitchTests
         Assert.Empty(store.GetAll());
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 3.4 — Runtime toggle via IOptionsMonitor
-    // ═══════════════════════════════════════════════════════════════
-
-    /// <summary>Test 18-19: Toggle from enabled → disabled at runtime stops capture.</summary>
+    /// <summary>Test: Toggle from enabled → disabled at runtime stops capture.</summary>
     [Fact]
     public async Task Handler_RuntimeToggle_EnabledToDisabled_StopsCapture()
     {
@@ -170,7 +156,7 @@ public class IsEnabledMasterSwitchTests
         Assert.Single(store.GetAll()); // still only one record
     }
 
-    /// <summary>Test 22-23: Toggle from disabled → enabled at runtime resumes capture.</summary>
+    /// <summary>Test: Toggle from disabled → enabled at runtime resumes capture.</summary>
     [Fact]
     public async Task Handler_RuntimeToggle_DisabledToEnabled_ResumesCapture()
     {
@@ -218,48 +204,7 @@ public class IsEnabledMasterSwitchTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // Helpers — TestServer hosts
-    // ═══════════════════════════════════════════════════════════════
-
-    private static async Task<IHost> CreateHost(bool isEnabled, bool addSampleEndpoint = false)
-    {
-        var host = new HostBuilder()
-            .ConfigureWebHost(web =>
-            {
-                web.UseTestServer();
-                web.ConfigureServices(services =>
-                {
-                    services.Configure<HttpLensOptions>(opts =>
-                    {
-                        opts.IsEnabled = isEnabled;
-                    });
-                    services.AddSingleton<ITrafficStore>(sp =>
-                    {
-                        var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
-                        return new InMemoryTrafficStore(opts);
-                    });
-                    services.AddRouting();
-                });
-                web.Configure(app =>
-                {
-                    app.UseRouting();
-                    app.UseEndpoints(ep =>
-                    {
-                        ep.MapHttpLensDashboard();
-
-                        if (addSampleEndpoint)
-                        {
-                            ep.MapGet("/api/weather", () => Results.Ok(new { temp = 20 }));
-                        }
-                    });
-                });
-            })
-            .Build();
-
-        await host.StartAsync();
-        return host;
-    }
+    
 
     /// <summary>
     /// Creates a host where IsEnabled can be changed at runtime via the holder object.

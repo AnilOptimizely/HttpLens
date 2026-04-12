@@ -4,31 +4,22 @@ using System.Text.Encodings.Web;
 using HttpLens.Core.Configuration;
 using HttpLens.Core.Storage;
 using HttpLens.Dashboard.Extensions;
+using HttpLens.Dashboard.Tests.Models;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace HttpLens.Dashboard.Tests;
 
 /// <summary>
-/// Phase 6: ASP.NET Core Authorization Policy tests.
+/// ASP.NET Core Authorization Policy tests.
 /// Uses a custom TestAuthHandler to simulate authenticated/unauthenticated requests
 /// with specific roles, verifying that RequireAuthorization() is applied correctly
 /// to HttpLens dashboard and API routes.
 /// </summary>
 public class AuthorizationPolicyTests
 {
-    // ═══════════════════════════════════════════════════════════════
-    // 6.1 — With "HttpLensAccess" policy requiring "Admin" role
-    // ═══════════════════════════════════════════════════════════════
-
     /// <summary>Test 50: Dashboard — unauthenticated → 401</summary>
     [Fact]
     public async Task Dashboard_Unauthenticated_Returns401()
@@ -106,10 +97,6 @@ public class AuthorizationPolicyTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 6.2 — No policy configured
-    // ═══════════════════════════════════════════════════════════════
-
     /// <summary>Test 56: No AuthorizationPolicy → dashboard loads without auth</summary>
     [Fact]
     public async Task Dashboard_NoPolicy_Returns200WithoutAuth()
@@ -131,10 +118,6 @@ public class AuthorizationPolicyTests
         var response = await client.GetAsync("/_httplens/api/traffic");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // Bonus: API key + Authorization Policy combined
-    // ═══════════════════════════════════════════════════════════════
 
     /// <summary>Admin with correct API key → 200</summary>
     [Fact]
@@ -229,39 +212,5 @@ public class AuthorizationPolicyTests
 
         await host.StartAsync();
         return host;
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // TestAuthHandler
-    // ═══════════════════════════════════════════════════════════════
-
-    private sealed class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
-    {
-        public TestAuthHandler(
-            IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger,
-            UrlEncoder encoder)
-            : base(options, logger, encoder) { }
-
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
-        {
-            if (!Request.Headers.TryGetValue("X-Test-User", out var userHeader) ||
-                string.IsNullOrEmpty(userHeader.FirstOrDefault()))
-            {
-                return Task.FromResult(AuthenticateResult.NoResult());
-            }
-
-            var claims = new List<Claim> { new(ClaimTypes.Name, userHeader.First()!) };
-
-            if (Request.Headers.TryGetValue("X-Test-Role", out var roleHeader) &&
-                !string.IsNullOrEmpty(roleHeader.FirstOrDefault()))
-            {
-                claims.Add(new Claim(ClaimTypes.Role, roleHeader.First()!));
-            }
-
-            var identity = new ClaimsIdentity(claims, "Test");
-            var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), "Test");
-            return Task.FromResult(AuthenticateResult.Success(ticket));
-        }
     }
 }

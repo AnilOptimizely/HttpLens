@@ -3,6 +3,7 @@ using HttpLens.Core.Configuration;
 using HttpLens.Core.Storage;
 using HttpLens.Dashboard.Extensions;
 using HttpLens.Dashboard.Middleware;
+using HttpLens.Dashboard.Tests.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,16 +16,12 @@ using Xunit;
 namespace HttpLens.Dashboard.Tests;
 
 /// <summary>
-/// Phase 5: IP Allowlist tests.
+/// IP Allowlist tests.
 /// Unit tests for the static IsIpAllowed method and integration tests using TestServer
 /// with mock RemoteIpAddress to verify end-to-end IP filtering.
 /// </summary>
 public class IpAllowlistTests
 {
-    // ═══════════════════════════════════════════════════════════════
-    // 5.1 — IsIpAllowed: Exact IP matching
-    // ═══════════════════════════════════════════════════════════════
-
     [Theory]
     [InlineData("127.0.0.1", new[] { "127.0.0.1", "::1" }, true)]
     [InlineData("::1", new[] { "127.0.0.1", "::1" }, true)]
@@ -35,10 +32,6 @@ public class IpAllowlistTests
         var result = IpAllowlistMiddleware.IsIpAllowed(IPAddress.Parse(ip), ranges);
         Assert.Equal(expected, result);
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 5.2 — IsIpAllowed: CIDR range matching
-    // ═══════════════════════════════════════════════════════════════
 
     [Theory]
     [InlineData("10.0.1.5", new[] { "10.0.0.0/8" }, true)]       // Test 46: inside 10.0.0.0/8
@@ -54,10 +47,6 @@ public class IpAllowlistTests
         var result = IpAllowlistMiddleware.IsIpAllowed(IPAddress.Parse(ip), ranges);
         Assert.Equal(expected, result);
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 5.2 — IsIpAllowed: IPv4-mapped IPv6 normalisation
-    // ═══════════════════════════════════════════════════════════════
 
     [Fact]
     public void IsIpAllowed_IPv4MappedIPv6_NormalisedCorrectly()
@@ -75,10 +64,6 @@ public class IpAllowlistTests
         Assert.True(IpAllowlistMiddleware.IsIpAllowed(mappedIp, new[] { "10.0.0.0/8" }));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 5.3 — IsIpAllowed: Empty allowlist
-    // ═══════════════════════════════════════════════════════════════
-
     [Fact]
     public void IsIpAllowed_EmptyList_ReturnsFalse()
     {
@@ -89,15 +74,12 @@ public class IpAllowlistTests
         Assert.False(result);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 5.2 — Integration: CIDR range via TestServer with mock IP
-    // ═══════════════════════════════════════════════════════════════
-
-    /// <summary>Test 46: Request from 10.0.1.5 with AllowedIpRanges=["10.0.0.0/8"] → 200</summary>
+   
+    /// <summary>Test: Request from 10.0.1.5 with AllowedIpRanges=["10.0.0.0/8"] → 200</summary>
     [Fact]
     public async Task Dashboard_AllowedCidrRange_Returns200()
     {
-        using var host = await CreateHostWithIpAllowlist(
+        using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
             allowedRanges: new[] { "10.0.0.0/8" },
             remoteIp: IPAddress.Parse("10.0.1.5"));
 
@@ -106,12 +88,12 @@ public class IpAllowlistTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    /// <summary>Test 47: Request from 192.168.1.1 with AllowedIpRanges=["10.0.0.0/8"] → 403</summary>
+    /// <summary>Test: Request from 192.168.1.1 with AllowedIpRanges=["10.0.0.0/8"] → 403</summary>
     [Fact]
     public async Task Dashboard_BlockedIp_Returns403()
     {
-        using var host = await CreateHostWithIpAllowlist(
-            allowedRanges: new[] { "10.0.0.0/8" },
+        using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
+            allowedRanges: ["10.0.0.0/8"],
             remoteIp: IPAddress.Parse("192.168.1.1"));
 
         var client = host.GetTestClient();
@@ -119,12 +101,12 @@ public class IpAllowlistTests
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    /// <summary>Test 48: Empty AllowedIpRanges → request from any IP returns 200</summary>
+    /// <summary>Test: Empty AllowedIpRanges → request from any IP returns 200</summary>
     [Fact]
     public async Task Dashboard_EmptyAllowlist_AllowsAllIps()
     {
-        using var host = await CreateHostWithIpAllowlist(
-            allowedRanges: Array.Empty<string>(),
+        using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
+            allowedRanges: [],
             remoteIp: IPAddress.Parse("203.0.113.50"));
 
         var client = host.GetTestClient();
@@ -132,11 +114,11 @@ public class IpAllowlistTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    /// <summary>Test 49: Non-HttpLens route from blocked IP → still 200 (not protected)</summary>
+    /// <summary>Test: Non-HttpLens route from blocked IP → still 200 (not protected)</summary>
     [Fact]
     public async Task NonHttpLensRoute_BlockedIp_StillReturns200()
     {
-        using var host = await CreateHostWithIpAllowlist(
+        using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
             allowedRanges: new[] { "10.0.0.0/8" },
             remoteIp: IPAddress.Parse("192.168.1.1"),
             addSampleEndpoint: true);
@@ -146,13 +128,13 @@ public class IpAllowlistTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
-    /// <summary>Test 44/45: Localhost with AllowedIpRanges=["127.0.0.1","::1"] → 200</summary>
+    /// <summary>Test: Localhost with AllowedIpRanges=["127.0.0.1","::1"] → 200</summary>
     [Theory]
     [InlineData("127.0.0.1")]
     [InlineData("::1")]
     public async Task Dashboard_LocalhostAllowed_Returns200(string ip)
     {
-        using var host = await CreateHostWithIpAllowlist(
+        using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
             allowedRanges: new[] { "127.0.0.1", "::1" },
             remoteIp: IPAddress.Parse(ip));
 
@@ -165,70 +147,12 @@ public class IpAllowlistTests
     [Fact]
     public async Task Dashboard_MultipleRanges_MatchesAny()
     {
-        using var host = await CreateHostWithIpAllowlist(
+        using var host = await CreateHostHelper.CreateHostWithIpAllowlist(
             allowedRanges: new[] { "10.0.0.0/8", "172.16.0.0/12" },
             remoteIp: IPAddress.Parse("172.16.5.10"));
 
         var client = host.GetTestClient();
         var response = await client.GetAsync("/_httplens/api/traffic");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // Helper: Create a TestServer with specific IP allowlist + mock IP
-    // ═══════════════════════════════════════════════════════════════
-
-    private static async Task<IHost> CreateHostWithIpAllowlist(
-        string[] allowedRanges,
-        IPAddress remoteIp,
-        bool addSampleEndpoint = false)
-    {
-        var host = new HostBuilder()
-            .ConfigureWebHost(web =>
-            {
-                web.UseTestServer(o =>
-                {
-                    // Override the RemoteIpAddress for all test requests.
-                    o.AllowSynchronousIO = true;
-                });
-                web.ConfigureServices(services =>
-                {
-                    services.Configure<HttpLensOptions>(opts =>
-                    {
-                        opts.IsEnabled = true;
-                        opts.AllowedIpRanges = new List<string>(allowedRanges);
-                    });
-                    services.AddSingleton<ITrafficStore>(sp =>
-                    {
-                        var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
-                        return new InMemoryTrafficStore(opts);
-                    });
-                    services.AddRouting();
-                });
-                web.Configure(app =>
-                {
-                    // Middleware to set the mock RemoteIpAddress on every request.
-                    app.Use(async (context, next) =>
-                    {
-                        context.Connection.RemoteIpAddress = remoteIp;
-                        await next();
-                    });
-
-                    app.UseRouting();
-                    app.UseEndpoints(ep =>
-                    {
-                        ep.MapHttpLensDashboard();
-
-                        if (addSampleEndpoint)
-                        {
-                            ep.MapGet("/api/weather", () => Results.Ok(new { temp = 20 }));
-                        }
-                    });
-                });
-            })
-            .Build();
-
-        await host.StartAsync();
-        return host;
     }
 }
