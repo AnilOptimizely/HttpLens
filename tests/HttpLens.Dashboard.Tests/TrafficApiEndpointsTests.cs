@@ -1,15 +1,10 @@
 using System.Net;
-using System.Net.Http.Json;
 using HttpLens.Core.Configuration;
 using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
 using HttpLens.Dashboard.Api;
-using HttpLens.Dashboard.Extensions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
+using HttpLens.Dashboard.Tests.Models;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -89,6 +84,6 @@ public class TrafficApiEndpointsTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Equal(0, _store.Count);
     }
-
+    /// <summary>DTO for deserializing the traffic list API response.</summary>
     private sealed record TrafficListDto(int Total, HttpTrafficRecord[] Records);
 }

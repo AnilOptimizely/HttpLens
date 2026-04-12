@@ -2,6 +2,7 @@
 using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
 using HttpLens.Dashboard.Tests.Helpers;
+using HttpLens.Dashboard.Tests.Models;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -163,6 +164,6 @@ public class BackwardCompatibilityTests
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Empty(store.GetAll());
     }
-
+    /// <summary>DTO for deserializing the traffic list API response.</summary>
     private sealed record TrafficListDto(int Total, HttpTrafficRecord[] Records);
 }

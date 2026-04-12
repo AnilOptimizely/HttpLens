@@ -19,7 +19,7 @@ internal static class HeaderSnapshot
 
             foreach (var (name, values) in headers)
             {
-                result[name] = values.ToArray();
+                result[name] = [.. values];
             }
         }
 

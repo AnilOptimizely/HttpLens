@@ -2,6 +2,8 @@
 using HttpLens.Core.Extensions;
 using HttpLens.Core.Storage;
 using HttpLens.Dashboard.Extensions;
+using HttpLens.Dashboard.Tests.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -10,7 +12,6 @@ namespace HttpLens.Dashboard.Tests.Helpers
 {
     internal static class CreateHostHelper
     {
-
         public static async Task<IHost> CreateHostAllLayers(
             string environment,
             string[] allowedEnvironments,
@@ -28,9 +29,9 @@ namespace HttpLens.Dashboard.Tests.Helpers
                     {
                         services.AddHttpLens(ctx.HostingEnvironment, opts =>
                         {
-                            opts.AllowedEnvironments = new List<string>(allowedEnvironments);
+                            opts.AllowedEnvironments = [.. allowedEnvironments];
                             opts.ApiKey = apiKey;
-                            opts.AllowedIpRanges = new List<string>(allowedIpRanges);
+                            opts.AllowedIpRanges = [.. allowedIpRanges];
                         });
                         services.AddRouting();
                     });
@@ -79,7 +80,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             opts.IsEnabled = isEnabled;
                             opts.ApiKey = apiKey;
                             if (allowedIpRanges != null)
-                                opts.AllowedIpRanges = new List<string>(allowedIpRanges);
+                                opts.AllowedIpRanges = [.. allowedIpRanges];
                         });
                         services.AddSingleton<ITrafficStore>(sp =>
                         {
@@ -174,7 +175,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                         services.Configure<HttpLensOptions>(opts =>
                         {
                             opts.IsEnabled = true;
-                            opts.AllowedIpRanges = new List<string>(allowedRanges);
+                            opts.AllowedIpRanges = [.. allowedRanges];
                         });
                         services.AddSingleton<ITrafficStore>(sp =>
                         {
@@ -268,7 +269,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                     {
                         services.AddHttpLens(ctx.HostingEnvironment, opts =>
                         {
-                            opts.AllowedEnvironments = new List<string>(allowedEnvironments);
+                            opts.AllowedEnvironments = [.. allowedEnvironments];
                         });
                         services.AddRouting();
                     });
@@ -315,7 +316,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             opts.IsEnabled = true;
                             opts.ApiKey = apiKey;
                             if (allowedIpRanges != null)
-                                opts.AllowedIpRanges = new List<string>(allowedIpRanges);
+                                opts.AllowedIpRanges = [.. allowedIpRanges];
                         });
                         services.AddSingleton<ITrafficStore>(sp =>
                         {
@@ -397,6 +398,97 @@ namespace HttpLens.Dashboard.Tests.Helpers
                         app.UseEndpoints(ep =>
                         {
                             ep.MapHttpLensDashboard();
+                        });
+                    });
+                })
+                .Build();
+
+            await host.StartAsync();
+            return host;
+        }
+
+        /// <summary>
+        /// Creates a host where IsEnabled can be changed at runtime via the holder object.
+        /// </summary>
+        public static async Task<IHost> CreateHostWithMutableOptions(MutableOptionsHolder holder)
+        {
+            var host = new HostBuilder()
+                .ConfigureWebHost(web =>
+                {
+                    web.UseTestServer();
+                    web.ConfigureServices(services =>
+                    {
+                        services.AddSingleton<IOptionsMonitor<HttpLensOptions>>(
+                            new DelegatingOptionsMonitor(holder));
+                        services.AddSingleton<ITrafficStore>(sp =>
+                        {
+                            var opts = Options.Create(new HttpLensOptions());
+                            return new InMemoryTrafficStore(opts);
+                        });
+                        services.AddRouting();
+                    });
+                    web.Configure(app =>
+                    {
+                        app.UseRouting();
+                        app.UseEndpoints(ep =>
+                        {
+                            ep.MapHttpLensDashboard();
+                        });
+                    });
+                })
+                .Build();
+
+            await host.StartAsync();
+            return host;
+        }
+
+        public static async Task<IHost> CreateHostWithAuthPolicy(
+        string? authorizationPolicy,
+        string? apiKey = null,
+        bool addSampleEndpoint = false)
+        {
+            var host = new HostBuilder()
+                .ConfigureWebHost(web =>
+                {
+                    web.UseTestServer();
+                    web.ConfigureServices(services =>
+                    {
+                        services.AddAuthentication("Test")
+                            .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", null);
+
+                        services.AddAuthorizationBuilder()
+                            .AddPolicy("HttpLensAccess", policy =>
+                                policy.RequireRole("Admin"));
+
+                        services.Configure<HttpLensOptions>(opts =>
+                        {
+                            opts.IsEnabled = true;
+                            opts.AuthorizationPolicy = authorizationPolicy;
+                            opts.ApiKey = apiKey;
+                        });
+
+                        services.AddSingleton<ITrafficStore>(sp =>
+                        {
+                            var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
+                            return new InMemoryTrafficStore(opts);
+                        });
+
+                        services.AddRouting();
+                    });
+                    web.Configure(app =>
+                    {
+                        // CORRECT ORDER: Routing → Authentication → Authorization → Endpoints
+                        app.UseRouting();
+                        app.UseAuthentication();
+                        app.UseAuthorization();
+                        app.UseEndpoints(ep =>
+                        {
+                            ep.MapHttpLensDashboard();
+
+                            if (addSampleEndpoint)
+                            {
+                                ep.MapGet("/api/weather", () => Results.Ok(new { temp = 20 }));
+                            }
                         });
                     });
                 })

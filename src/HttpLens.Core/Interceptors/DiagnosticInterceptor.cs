@@ -24,23 +24,17 @@ namespace HttpLens.Core.Interceptors;
 /// <c>RetryGroupId</c> is always <c>null</c> and <c>AttemptNumber</c> is always <c>1</c>.
 /// </para>
 /// </remarks>
-internal sealed class DiagnosticInterceptor
-    : IObserver<DiagnosticListener>, IObserver<KeyValuePair<string, object?>>, IDisposable
+/// <param name="store">The singleton traffic store.</param>
+/// <param name="optionsMonitor">HttpLens configuration monitor supporting runtime reloading.</param>
+internal sealed class DiagnosticInterceptor(ITrafficStore store, IOptionsMonitor<HttpLensOptions> optionsMonitor)
+        : IObserver<DiagnosticListener>, IObserver<KeyValuePair<string, object?>>, IDisposable
 {
-    private readonly ITrafficStore _store;
-    private readonly IOptionsMonitor<HttpLensOptions> _optionsMonitor;
+    private readonly ITrafficStore _store = store;
+    private readonly IOptionsMonitor<HttpLensOptions> _optionsMonitor = optionsMonitor;
     private readonly ConcurrentDictionary<HttpRequestMessage, InFlightRecord> _inFlight = new();
 
     private IDisposable? _allListenersSubscription;
     private IDisposable? _httpListenerSubscription;
-
-    /// <param name="store">The singleton traffic store.</param>
-    /// <param name="optionsMonitor">HttpLens configuration monitor supporting runtime reloading.</param>
-    public DiagnosticInterceptor(ITrafficStore store, IOptionsMonitor<HttpLensOptions> optionsMonitor)
-    {
-        _store = store;
-        _optionsMonitor = optionsMonitor;
-    }
 
     /// <summary>Subscribes to <see cref="DiagnosticListener.AllListeners"/> to begin capturing traffic.</summary>
     public void Start()
@@ -50,8 +44,6 @@ internal sealed class DiagnosticInterceptor
 
         _allListenersSubscription = DiagnosticListener.AllListeners.Subscribe(this);
     }
-
-    // ── IObserver<DiagnosticListener> ────────────────────────────────────────
 
     void IObserver<DiagnosticListener>.OnNext(DiagnosticListener listener)
     {
@@ -63,8 +55,6 @@ internal sealed class DiagnosticInterceptor
 
     void IObserver<DiagnosticListener>.OnError(Exception error) { }
     void IObserver<DiagnosticListener>.OnCompleted() { }
-
-    // ── IObserver<KeyValuePair<string, object?>> ─────────────────────────────
 
     void IObserver<KeyValuePair<string, object?>>.OnNext(KeyValuePair<string, object?> kvp)
     {
@@ -185,8 +175,6 @@ internal sealed class DiagnosticInterceptor
 
         _store.Add(record);
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static T? GetProperty<T>(object? obj, string name) =>
         obj?.GetType().GetProperty(name)?.GetValue(obj) is T value ? value : default;

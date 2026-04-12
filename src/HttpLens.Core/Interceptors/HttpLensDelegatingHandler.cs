@@ -10,18 +10,12 @@ namespace HttpLens.Core.Interceptors;
 /// A <see cref="DelegatingHandler"/> that captures every outbound HTTP request/response
 /// and stores it in the <see cref="ITrafficStore"/>.
 /// </summary>
-public sealed class HttpLensDelegatingHandler : DelegatingHandler
+/// <param name="store">The singleton traffic store.</param>
+/// <param name="optionsMonitor">HttpLens configuration monitor supporting runtime reloading.</param>
+public sealed class HttpLensDelegatingHandler(ITrafficStore store, IOptionsMonitor<HttpLensOptions> optionsMonitor) : DelegatingHandler
 {
-    private readonly ITrafficStore _store;
-    private readonly IOptionsMonitor<HttpLensOptions> _optionsMonitor;
-
-    /// <param name="store">The singleton traffic store.</param>
-    /// <param name="optionsMonitor">HttpLens configuration monitor supporting runtime reloading.</param>
-    public HttpLensDelegatingHandler(ITrafficStore store, IOptionsMonitor<HttpLensOptions> optionsMonitor)
-    {
-        _store = store;
-        _optionsMonitor = optionsMonitor;
-    }
+    private readonly ITrafficStore _store = store;
+    private readonly IOptionsMonitor<HttpLensOptions> _optionsMonitor = optionsMonitor;
 
     /// <inheritdoc />
     protected override async Task<HttpResponseMessage> SendAsync(
@@ -41,11 +35,10 @@ public sealed class HttpLensDelegatingHandler : DelegatingHandler
             RequestUri = request.RequestUri?.ToString() ?? string.Empty,
             TraceId = Activity.Current?.TraceId.ToString(),
             ParentSpanId = Activity.Current?.SpanId.ToString(),
+            // Capture request
+            RequestHeaders = HeaderSnapshot.Capture(request.Headers, request.Content?.Headers),
+            RequestContentType = request.Content?.Headers.ContentType?.ToString()
         };
-
-        // Capture request
-        record.RequestHeaders = HeaderSnapshot.Capture(request.Headers, request.Content?.Headers);
-        record.RequestContentType = request.Content?.Headers.ContentType?.ToString();
 
         if (options.CaptureRequestBody)
         {

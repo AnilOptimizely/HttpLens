@@ -1,17 +1,11 @@
-using System.Net;
-using System.Net.Http.Json;
-using System.Text;
 using HttpLens.Core.Extensions;
 using HttpLens.Core.Models;
 using HttpLens.Dashboard.Extensions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
+using System.Net;
+using System.Text;
 using Xunit;
 
 namespace HttpLens.EndToEnd.Tests;
@@ -24,7 +18,7 @@ public class CustomOptionsEndToEndTests
 {
     private const string BasePath = "/_custom-httplens";
 
-    private static IHostBuilder CreateHost(Action<HttpLens.Core.Configuration.HttpLensOptions>? configure = null)
+    private static IHostBuilder CreateHost(Action<Core.Configuration.HttpLensOptions>? configure = null)
     {
         return new HostBuilder()
             .ConfigureWebHost(web =>
@@ -171,7 +165,6 @@ public class CustomOptionsEndToEndTests
 
         await host.StopAsync();
     }
-
     /// <summary>DTO for deserializing the traffic list API response.</summary>
     private sealed record TrafficListDto(int Total, HttpTrafficRecord[] Records);
 }

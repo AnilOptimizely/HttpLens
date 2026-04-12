@@ -45,9 +45,9 @@ public sealed class HttpLensOptions
     /// When empty (default), HttpLens runs in all environments.
     /// Example: ["Development", "Staging"]
     /// </summary>
-    public List<string> AllowedEnvironments { get; set; } = new();
+    public List<string> AllowedEnvironments { get; set; } = [];
 
-    /// <summary>
+    /// <summary>   
     /// API key required to access the dashboard and API endpoints.
     /// When null or empty, no API key authentication is required (development mode).
     /// The key can be provided via the X-HttpLens-Key request header or ?key= query parameter.
@@ -68,5 +68,5 @@ public sealed class HttpLensOptions
     /// Supports IPv4, IPv6, and CIDR notation.
     /// Example: ["10.0.0.0/8", "192.168.1.0/24", "::1", "127.0.0.1"]
     /// </summary>
-    public List<string> AllowedIpRanges { get; set; } = new();
+    public List<string> AllowedIpRanges { get; set; } = [];
 }

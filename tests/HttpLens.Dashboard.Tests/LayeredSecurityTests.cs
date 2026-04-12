@@ -19,7 +19,7 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHost(
             apiKey: "my-key",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
         client.DefaultRequestHeaders.Add("X-HttpLens-Key", "my-key");
@@ -34,7 +34,7 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHost(
             apiKey: "my-key",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
 
@@ -48,7 +48,7 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHost(
             apiKey: "my-key",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Parse("192.168.1.1"));
         var client = host.GetTestClient();
         client.DefaultRequestHeaders.Add("X-HttpLens-Key", "my-key");
@@ -63,7 +63,7 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHost(
             apiKey: "my-key",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
 
@@ -135,9 +135,9 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHostAllLayers(
             environment: "Development",
-            allowedEnvironments: new[] { "Development", "Staging" },
+            allowedEnvironments: ["Development", "Staging"],
             apiKey: "super-secret",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
         client.DefaultRequestHeaders.Add("X-HttpLens-Key", "super-secret");
@@ -152,9 +152,9 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHostAllLayers(
             environment: "Development",
-            allowedEnvironments: new[] { "Development", "Staging" },
+            allowedEnvironments: ["Development", "Staging"],
             apiKey: "super-secret",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
 
@@ -168,9 +168,9 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHostAllLayers(
             environment: "Development",
-            allowedEnvironments: new[] { "Development", "Staging" },
+            allowedEnvironments: ["Development", "Staging"],
             apiKey: "super-secret",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Parse("192.168.1.1"));
         var client = host.GetTestClient();
         client.DefaultRequestHeaders.Add("X-HttpLens-Key", "super-secret");
@@ -186,9 +186,9 @@ public class LayeredSecurityTests
         // When env is excluded, AddHttpLens skips registration, dashboard is not mapped
         using var host = await CreateHostHelper.CreateHostAllLayers(
             environment: "Production",
-            allowedEnvironments: new[] { "Development", "Staging" },
+            allowedEnvironments: ["Development", "Staging"],
             apiKey: "super-secret",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
         client.DefaultRequestHeaders.Add("X-HttpLens-Key", "super-secret");
@@ -203,9 +203,9 @@ public class LayeredSecurityTests
     {
         using var host = await CreateHostHelper.CreateHostAllLayers(
             environment: "Production",
-            allowedEnvironments: new[] { "Development", "Staging" },
+            allowedEnvironments: ["Development", "Staging"],
             apiKey: "super-secret",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback,
             addSampleEndpoint: true);
         var client = host.GetTestClient();
@@ -224,7 +224,7 @@ public class LayeredSecurityTests
         using var host = await CreateHostHelper.CreateHost(
             isEnabled: false,
             apiKey: "my-key",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
 
@@ -246,7 +246,7 @@ public class LayeredSecurityTests
         using var host = await CreateHostHelper.CreateHost(
             isEnabled: true,
             apiKey: "my-key",
-            allowedIpRanges: new[] { "10.0.0.0/8" },
+            allowedIpRanges: ["10.0.0.0/8"],
             remoteIp: IPAddress.Parse("192.168.1.1"));
         var client = host.GetTestClient();
         // Provide WRONG key to prove we never get 401
@@ -270,7 +270,7 @@ public class LayeredSecurityTests
         using var host = await CreateHostHelper.CreateHost(
             isEnabled: true,
             apiKey: "my-key",
-            allowedIpRanges: new[] { "127.0.0.1", "::1" },
+            allowedIpRanges: ["127.0.0.1", "::1"],
             remoteIp: IPAddress.Loopback);
         var client = host.GetTestClient();
         client.DefaultRequestHeaders.Add("X-HttpLens-Key", "wrong-key");
@@ -292,7 +292,7 @@ public class LayeredSecurityTests
         using var host = await CreateHostHelper.CreateHost(
             isEnabled: false,
             apiKey: "my-key",
-            allowedIpRanges: new[] { "10.0.0.0/8" },
+            allowedIpRanges: ["10.0.0.0/8"],
             remoteIp: IPAddress.Parse("192.168.1.1"));
         var client = host.GetTestClient();
 
@@ -310,7 +310,7 @@ public class LayeredSecurityTests
         using var host = await CreateHostHelper.CreateHost(
             isEnabled: true,
             apiKey: "my-key",
-            allowedIpRanges: new[] { "10.0.0.0/8" },
+            allowedIpRanges: ["10.0.0.0/8"],
             remoteIp: IPAddress.Parse("192.168.1.1"));
         var client = host.GetTestClient();
 
