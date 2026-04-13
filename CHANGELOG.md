@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.0.0] — Security & Authorization
+
+### Added
+
+- `IsEnabled` master switch on `HttpLensOptions` — disables all capture and returns 404 on dashboard when `false`
+- `AllowedEnvironments` option — skip service registration entirely when the current hosting environment is not in the list (zero overhead)
+- `ApiKey` option — require `X-HttpLens-Key` header or `?key=` query parameter to access dashboard and API
+- `AuthorizationPolicy` option — apply any named ASP.NET Core authorization policy to all HttpLens routes
+- `AllowedIpRanges` option — restrict dashboard access by IPv4, IPv6, or CIDR range (e.g. `10.0.0.0/8`)
+- `AddHttpLens(IHostEnvironment, Action<HttpLensOptions>?)` overload — checks `AllowedEnvironments` at registration time
+- `EnabledGuardMiddleware` — path-scoped 404 when `IsEnabled = false`
+- `IpAllowlistMiddleware` — CIDR matching with IPv4-mapped IPv6 normalisation (`::ffff:127.0.0.1` → `127.0.0.1`)
+- `ApiKeyAuthMiddleware` — header-first, query-param fallback; returns 401 with JSON error body
+- Frontend API key support — `traffic-api.service.ts` reads `?key=` from page URL, stores in `sessionStorage`, injects `X-HttpLens-Key` on every fetch; 401 responses show clear message
+- Comprehensive test suite: 135 automated tests covering all security layers, layered combinations, middleware execution order, and edge cases
+
+### Changed
+
+- `HttpLensDelegatingHandler` migrated from `IOptions<HttpLensOptions>` to `IOptionsMonitor<HttpLensOptions>` — options are now read at request time, enabling runtime toggles without restart
+- `DiagnosticInterceptor` migrated from `IOptions<HttpLensOptions>` to `IOptionsMonitor<HttpLensOptions>`
+- `MapHttpLensApi` return type changed from `void` to `RouteGroupBuilder` (backward-compatible)
+- Security middleware applied automatically inside `MapHttpLensDashboard()` — no `UseMiddleware` calls needed in host apps
+- All security layers are opt-in — existing users with no security config see zero behavior change
+
 ## [1.1.0] — DiagnosticListener Interception
 
 ### Added

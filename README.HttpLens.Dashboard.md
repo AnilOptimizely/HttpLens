@@ -1,6 +1,6 @@
 # HttpLens.Dashboard
 
-The embedded web dashboard for [HttpLens](https://github.com/AnilOptimizely/HttpClientStorybook) — a browser-based UI for inspecting all outbound HTTP traffic captured by `HttpLens.Core`.
+The embedded web dashboard for [HttpLens](https://github.com/AnilOptimizely/HttpLens) — a browser-based UI for inspecting all outbound HTTP traffic captured by `HttpLens.Core`.
 
 > **Most users should install the [`HttpLens`](https://www.nuget.org/packages/HttpLens) meta-package**, which bundles both `HttpLens.Core` and `HttpLens.Dashboard`. Install `HttpLens.Dashboard` directly only if you're building a custom setup.
 
@@ -92,6 +92,88 @@ app.MapHttpLensDashboard("/my-custom-path");
 // API available at:       https://localhost:5001/my-custom-path/api/traffic
 ```
 
+## Security
+
+Security is applied **automatically** by `MapHttpLensDashboard()` — no `UseMiddleware` calls are needed in your `Program.cs`. All security layers are opt-in; existing users who don't configure security see zero behavior change.
+
+### Middleware Execution Order
+
+Checks run in this order; earlier layers short-circuit so later ones are skipped:
+
+1. **EnabledGuard** — returns 404 if `IsEnabled = false`
+2. **IpAllowlist** — returns 403 if client IP is not in `AllowedIpRanges`
+3. **ApiKey** — returns 401 if `X-HttpLens-Key` header or `?key=` query param is missing or wrong
+4. **Authorization policy** — evaluated by ASP.NET Core auth middleware
+
+### API Key Authentication
+
+When `ApiKey` is configured, the embedded SPA automatically reads `?key=` from the page URL on load, stores it in `sessionStorage`, and injects it as an `X-HttpLens-Key` header on every API call. If a request returns 401, the UI displays a clear message.
+
+Access the dashboard with the key in the URL:
+
+```
+/_httplens?key=my-secret
+```
+
+Subsequent navigation within the SPA does not require the query parameter — the key is kept in `sessionStorage` for the duration of the browser session.
+
+### Securing the Dashboard in Production
+
+The recommended pattern for production use:
+
+```csharp
+builder.Services.AddHttpLens(builder.Environment, options =>
+{
+    builder.Configuration.GetSection("HttpLens").Bind(options);
+});
+
+// Only map dashboard if services were registered
+if (app.Services.GetService<ITrafficStore>() != null)
+    app.MapHttpLensDashboard();
+```
+
+With `appsettings.Production.json`:
+
+```json
+{
+  "HttpLens": {
+    "IsEnabled": true,
+    "ApiKey": "my-production-secret",
+    "AllowedIpRanges": ["10.0.0.0/8", "127.0.0.1"]
+  }
+}
+```
+
+### IP Allowlist
+
+Supports exact IPv4 addresses, exact IPv6 addresses, and CIDR notation. IPv4-mapped IPv6 addresses (e.g. `::ffff:127.0.0.1`) are automatically normalised to their IPv4 equivalents before matching.
+
+```csharp
+builder.Services.AddHttpLens(options =>
+{
+    options.AllowedIpRanges.AddRange(["127.0.0.1", "::1", "10.0.0.0/8", "192.168.1.0/24"]);
+});
+```
+
+### Authorization Policy
+
+Apply any named ASP.NET Core authorization policy to all dashboard and API routes:
+
+```csharp
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("HttpLensAccess", policy =>
+        policy.RequireRole("Admin"));
+});
+
+builder.Services.AddHttpLens(options =>
+{
+    options.AuthorizationPolicy = "HttpLensAccess";
+});
+```
+
+The policy must be registered in the host application before `MapHttpLensDashboard()` is called.
+
 ## Testing with WebApplicationFactory
 
 When using `Microsoft.AspNetCore.Mvc.Testing`, enable synchronous IO on the TestServer:
@@ -130,6 +212,7 @@ public class MyTests : IClassFixture<WebApplicationFactory<Program>>
 |---|---|
 | .NET 8 | ✅ |
 | .NET 9 | ✅ |
+| .NET 10 | ✅ |
 
 ## License
 
