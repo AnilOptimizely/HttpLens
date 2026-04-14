@@ -192,4 +192,64 @@ public class HttpLensDelegatingHandlerTests
         await client.GetAsync("https://example.com/second");
         Assert.Single(store.GetAll()); // still only one record
     }
+
+    [Fact]
+    public async Task ExcludeUrlPattern_MatchingRequest_IsNotCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.ExcludeUrlPatterns = ["*health*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://example.com/health");
+
+        Assert.Empty(store.GetAll());
+    }
+
+    [Fact]
+    public async Task ExcludeUrlPattern_NonMatchingRequest_IsCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.ExcludeUrlPatterns = ["*health*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://example.com/users");
+
+        Assert.Single(store.GetAll());
+    }
+
+    [Fact]
+    public async Task IncludeUrlPattern_MatchingRequest_IsCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.IncludeUrlPatterns = ["https://api.github.com/*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://api.github.com/repos");
+
+        Assert.Single(store.GetAll());
+    }
+
+    [Fact]
+    public async Task IncludeUrlPattern_NonMatchingRequest_IsNotCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.IncludeUrlPatterns = ["https://api.github.com/*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://internal.example.com/data");
+
+        Assert.Empty(store.GetAll());
+    }
 }

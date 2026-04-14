@@ -69,4 +69,24 @@ public sealed class HttpLensOptions
     /// Example: ["10.0.0.0/8", "192.168.1.0/24", "::1", "127.0.0.1"]
     /// </summary>
     public List<string> AllowedIpRanges { get; set; } = [];
+
+    /// <summary>
+    /// Glob-style patterns for URLs that should NOT be captured.
+    /// If a request URL matches ANY pattern in this list, it is excluded from capture.
+    /// Exclude patterns take precedence over <see cref="IncludeUrlPatterns"/>.
+    /// Supports <c>*</c> wildcard (matches any sequence of characters).
+    /// When empty (default), no URLs are excluded.
+    /// Example: ["*health*", "https://internal-service/*", "*/api/ping"]
+    /// </summary>
+    public List<string> ExcludeUrlPatterns { get; set; } = [];
+
+    /// <summary>
+    /// Glob-style patterns for URLs that should be captured.
+    /// When non-empty, ONLY URLs matching at least one pattern in this list are captured.
+    /// <see cref="ExcludeUrlPatterns"/> takes precedence — a URL matching both lists is excluded.
+    /// Supports <c>*</c> wildcard (matches any sequence of characters).
+    /// When empty (default), all URLs are captured (subject to exclude patterns).
+    /// Example: ["https://api.github.com/*", "*/graphql"]
+    /// </summary>
+    public List<string> IncludeUrlPatterns { get; set; } = [];
 }
