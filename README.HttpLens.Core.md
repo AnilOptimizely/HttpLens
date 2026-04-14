@@ -82,6 +82,27 @@ builder.Services.AddHttpLens(options =>
 | `ApiKey` | `null` (off) | Require `X-HttpLens-Key` header or `?key=` query param |
 | `AuthorizationPolicy` | `null` (off) | Apply a named ASP.NET Core authorization policy |
 | `AllowedIpRanges` | `[]` (all) | Restrict by IPv4, IPv6, or CIDR range |
+| `ExcludeUrlPatterns` | `[]` | Glob patterns — URLs matching ANY pattern are NOT captured. `*` matches any characters. |
+| `IncludeUrlPatterns` | `[]` | Glob patterns — when non-empty, ONLY matching URLs are captured. Exclude takes precedence. |
+
+### URL Filtering
+
+Control which outbound URLs are captured:
+
+```csharp
+builder.Services.AddHttpLens(options =>
+{
+    // Skip health checks and internal calls
+    options.ExcludeUrlPatterns.AddRange(["*health*", "https://internal-service/*"]);
+
+    // Or: only capture specific APIs
+    options.IncludeUrlPatterns.AddRange(["https://api.github.com/*"]);
+});
+```
+
+- **Exclude takes precedence** — a URL matching both lists is excluded.
+- Empty lists = capture everything (backward compatible).
+- Patterns are case-insensitive, `*` matches any sequence of characters.
 
 ### Environment-Aware Registration
 
