@@ -84,6 +84,97 @@ public class TrafficApiEndpointsTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Equal(0, _store.Count);
     }
+
+    [Fact]
+    public async Task GetTraffic_WithMethodFilter_ReturnsFilteredResults()
+    {
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://a.com" });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "POST", RequestUri = "https://b.com" });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://c.com" });
+
+        var response = await _client!.GetAsync("/_httplens/api/traffic?method=GET");
+        var body = await response.Content.ReadFromJsonAsync<TrafficListDto>();
+
+        Assert.NotNull(body);
+        Assert.Equal(2, body!.Total);
+        Assert.All(body.Records, r => Assert.Equal("GET", r.RequestMethod));
+    }
+
+    [Fact]
+    public async Task GetTraffic_WithStatusFilter_ReturnsFilteredResults()
+    {
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://a.com", ResponseStatusCode = 200 });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://b.com", ResponseStatusCode = 404 });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://c.com", ResponseStatusCode = 429 });
+
+        var response = await _client!.GetAsync("/_httplens/api/traffic?status=4");
+        var body = await response.Content.ReadFromJsonAsync<TrafficListDto>();
+
+        Assert.NotNull(body);
+        Assert.Equal(2, body!.Total);
+        Assert.All(body.Records, r => Assert.True(r.ResponseStatusCode >= 400 && r.ResponseStatusCode < 500));
+    }
+
+    [Fact]
+    public async Task GetTraffic_WithSearchFilter_ReturnsFilteredResults()
+    {
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://api.github.com/repos" });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://example.com/health" });
+
+        var response = await _client!.GetAsync("/_httplens/api/traffic?search=github");
+        var body = await response.Content.ReadFromJsonAsync<TrafficListDto>();
+
+        Assert.NotNull(body);
+        Assert.Single(body!.Records);
+        Assert.Contains("github", body.Records[0].RequestUri);
+    }
+
+    [Fact]
+    public async Task GetTraffic_WithCombinedFilters_FiltersCorrectly()
+    {
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://api.github.com/repos", ResponseStatusCode = 200 });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "POST", RequestUri = "https://api.github.com/graphql", ResponseStatusCode = 200 });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://example.com/test", ResponseStatusCode = 200 });
+
+        var response = await _client!.GetAsync("/_httplens/api/traffic?method=GET&host=github.com");
+        var body = await response.Content.ReadFromJsonAsync<TrafficListDto>();
+
+        Assert.NotNull(body);
+        Assert.Single(body!.Records);
+        Assert.Equal("GET", body.Records[0].RequestMethod);
+        Assert.Contains("github.com", body.Records[0].RequestUri);
+    }
+
+    [Fact]
+    public async Task GetTraffic_FilteredTotal_ReflectsFilteredCount()
+    {
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://a.com", ResponseStatusCode = 200 });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "POST", RequestUri = "https://b.com", ResponseStatusCode = 200 });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://c.com", ResponseStatusCode = 200 });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://d.com", ResponseStatusCode = 200 });
+
+        var response = await _client!.GetAsync("/_httplens/api/traffic?method=GET");
+        var body = await response.Content.ReadFromJsonAsync<TrafficListDto>();
+
+        Assert.NotNull(body);
+        // Total should reflect filtered count, not store count
+        Assert.Equal(3, body!.Total);
+        Assert.Equal(3, body.Records.Length);
+    }
+
+    [Fact]
+    public async Task GetTraffic_NoFilters_ReturnsAllRecords()
+    {
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "GET", RequestUri = "https://a.com" });
+        _store!.Add(new HttpTrafficRecord { RequestMethod = "POST", RequestUri = "https://b.com" });
+
+        var response = await _client!.GetAsync("/_httplens/api/traffic");
+        var body = await response.Content.ReadFromJsonAsync<TrafficListDto>();
+
+        Assert.NotNull(body);
+        Assert.Equal(2, body!.Total);
+    }
+
     /// <summary>DTO for deserializing the traffic list API response.</summary>
     private sealed record TrafficListDto(int Total, HttpTrafficRecord[] Records);
 }

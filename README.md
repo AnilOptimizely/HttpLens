@@ -58,6 +58,58 @@ builder.Services.AddHttpLens(options =>
 });
 ```
 
+## Filtering
+
+### URL Exclusion / Inclusion Patterns
+
+Control which outbound HTTP request URLs are captured using glob-style patterns with `*` wildcards:
+
+```csharp
+builder.Services.AddHttpLens(options =>
+{
+    // Skip health checks and internal service calls
+    options.ExcludeUrlPatterns.AddRange(["*health*", "https://internal-service/*"]);
+
+    // Only capture calls to specific APIs
+    options.IncludeUrlPatterns.AddRange(["https://api.github.com/*", "*/graphql"]);
+});
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `ExcludeUrlPatterns` | `[]` | Glob patterns — URLs matching ANY pattern are NOT captured |
+| `IncludeUrlPatterns` | `[]` | Glob patterns — when non-empty, ONLY matching URLs are captured |
+
+- **Exclude takes precedence** — a URL matching both lists is excluded.
+- Empty lists preserve default behavior (capture everything).
+- Patterns are case-insensitive.
+
+### Server-Side Traffic Filtering
+
+The traffic API supports query parameter-based filtering:
+
+```
+GET /_httplens/api/traffic?method=GET&status=2&host=github.com&search=repos
+```
+
+| Parameter | Match Type | Example | Description |
+|---|---|---|---|
+| `method` | Exact (case-insensitive) | `?method=GET` | Filter by HTTP method |
+| `status` | Prefix | `?status=4` | Matches 400, 404, 429, etc. |
+| `host` | Substring (case-insensitive) | `?host=github.com` | Filter by host in URL |
+| `search` | Substring (case-insensitive) | `?search=api` | Free-text URL search |
+
+Filters are applied server-side before pagination. The `total` in the response reflects the filtered count.
+
+### Dashboard Filter Bar
+
+The embedded dashboard includes a visual filter bar with:
+- **Method dropdown** — filter by GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
+- **Status dropdown** — filter by 2xx, 3xx, 4xx, 5xx
+- **Host input** — filter by hostname
+- **Search input** — free-text URL search
+- **Clear Filters button** — reset all filters
+
 ## Security
 
 By default HttpLens applies **no security** — the dashboard is publicly accessible. This preserves the zero-config developer experience. Each security layer is opt-in.
@@ -182,6 +234,7 @@ Toggle between dark and light themes using the 🌙/☀️ button in the header.
 | Endpoint | Description |
 |---|---|
 | `GET /_httplens/api/traffic?skip=0&take=100` | List traffic records |
+| `GET /_httplens/api/traffic?method=GET&status=2&host=...&search=...` | List with server-side filtering |
 | `GET /_httplens/api/traffic/{id}` | Get single record |
 | `DELETE /_httplens/api/traffic` | Clear all records |
 | `GET /_httplens/api/traffic/retrygroup/{groupId}` | Get all attempts in a retry group |

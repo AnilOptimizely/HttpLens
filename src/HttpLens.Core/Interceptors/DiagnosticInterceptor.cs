@@ -96,6 +96,11 @@ internal sealed class DiagnosticInterceptor(ITrafficStore store, IOptionsMonitor
         if (uri.Contains(_optionsMonitor.CurrentValue.DashboardPath, StringComparison.OrdinalIgnoreCase))
             return;
 
+        // URL pattern filtering — skip capture if the URL is excluded or not included.
+        var currentOptions = _optionsMonitor.CurrentValue;
+        if (!UrlPatternMatcher.ShouldCapture(uri, currentOptions.ExcludeUrlPatterns, currentOptions.IncludeUrlPatterns))
+            return;
+
         var record = new HttpTrafficRecord
         {
             Timestamp = DateTimeOffset.UtcNow,

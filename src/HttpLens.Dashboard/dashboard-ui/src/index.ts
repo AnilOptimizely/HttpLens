@@ -3,6 +3,7 @@ import { PollingService } from './services/polling.service.js';
 import { TrafficTable } from './components/traffic-table.js';
 import { DetailPanel } from './components/detail-panel.js';
 import { Exporters } from './components/exporters.js';
+import { FilterBar } from './components/filter-bar.js';
 import { store } from './state/store.js';
 import { $ } from './utils/dom.js';
 
@@ -16,10 +17,12 @@ async function bootstrap(): Promise<void> {
   const table = new TrafficTable();
   const panel = new DetailPanel();
   const exporters = new Exporters();
+  const filterBar = new FilterBar();
 
   table.init();
   panel.init();
   exporters.init();
+  filterBar.init();
 
   // Theme toggle
   initTheme();

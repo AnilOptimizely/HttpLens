@@ -9,7 +9,7 @@
     <Copyright>Anil Patel 2026</Copyright>
     <RepositoryUrl>https://github.com/AnilOptimizely/HttpLens</RepositoryUrl>
     <PackageProjectUrl>https://github.com/AnilOptimizely/HttpLens/tree/main/src/HttpLens</PackageProjectUrl>
-    <Version>1.1.0.0</Version>
+    <Version>1.2.0.0</Version>
     <RepositoryType>git</RepositoryType>
     <Title>HttpLens</Title>
   </PropertyGroup>

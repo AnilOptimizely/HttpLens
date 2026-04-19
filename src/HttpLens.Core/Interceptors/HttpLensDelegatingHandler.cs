@@ -28,11 +28,16 @@ public sealed class HttpLensDelegatingHandler(ITrafficStore store, IOptionsMonit
         if (!options.IsEnabled)
             return await base.SendAsync(request, cancellationToken);
 
+        // URL pattern filtering — skip capture if the URL is excluded or not included.
+        var requestUri = request.RequestUri?.ToString() ?? string.Empty;
+        if (!UrlPatternMatcher.ShouldCapture(requestUri, options.ExcludeUrlPatterns, options.IncludeUrlPatterns))
+            return await base.SendAsync(request, cancellationToken);
+
         var record = new HttpTrafficRecord
         {
             Timestamp = DateTimeOffset.UtcNow,
             RequestMethod = request.Method.Method,
-            RequestUri = request.RequestUri?.ToString() ?? string.Empty,
+            RequestUri = requestUri,
             TraceId = Activity.Current?.TraceId.ToString(),
             ParentSpanId = Activity.Current?.SpanId.ToString(),
             // Capture request

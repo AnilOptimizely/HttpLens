@@ -19,6 +19,29 @@
     </div>
   </header>
 
+  <div class="filter-bar">
+    <select id="filter-method">
+      <option>All</option>
+      <option>GET</option>
+      <option>POST</option>
+      <option>PUT</option>
+      <option>PATCH</option>
+      <option>DELETE</option>
+      <option>HEAD</option>
+      <option>OPTIONS</option>
+    </select>
+    <select id="filter-status">
+      <option>All</option>
+      <option>2xx</option>
+      <option>3xx</option>
+      <option>4xx</option>
+      <option>5xx</option>
+    </select>
+    <input id="filter-host" type="text" placeholder="Host...">
+    <input id="filter-search" type="text" placeholder="Search URL...">
+    <button id="btn-clear-filters">✕ Clear Filters</button>
+  </div>
+
   <div class="main-layout">
     <div class="table-pane">
       <table>

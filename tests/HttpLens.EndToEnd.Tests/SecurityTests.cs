@@ -216,7 +216,7 @@ public class SecurityTests
 
         await client.GetAsync("/mock/data");
 
-        Assert.Equal(0, store.GetAll().Count);
+        Assert.Empty(store.GetAll());
 
         await host.StopAsync();
     }
@@ -300,11 +300,9 @@ public class SecurityTests
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private sealed class TestHostEnvironment : IHostEnvironment
+    private sealed class TestHostEnvironment(string environmentName) : IHostEnvironment
     {
-        public TestHostEnvironment(string environmentName) =>
-            EnvironmentName = environmentName;
-        public string EnvironmentName { get; set; }
+        public string EnvironmentName { get; set; } = environmentName;
         public string ApplicationName { get; set; } = "TestApp";
         public string ContentRootPath { get; set; } = ".";
         public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } =

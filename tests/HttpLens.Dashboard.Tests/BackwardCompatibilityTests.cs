@@ -2,7 +2,6 @@
 using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
 using HttpLens.Dashboard.Tests.Helpers;
-using HttpLens.Dashboard.Tests.Models;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Options;
 using System.Net;

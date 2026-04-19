@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.2.0] — Filtering & URL Patterns
+
+### Added
+
+- `ExcludeUrlPatterns` option on `HttpLensOptions` — glob-style patterns (`*` wildcard) to exclude specific URLs from capture. Any matching URL is skipped. Exclude takes precedence over include.
+- `IncludeUrlPatterns` option on `HttpLensOptions` — glob-style patterns to capture only matching URLs. When non-empty, only URLs matching at least one pattern are captured.
+- `UrlPatternMatcher` — static utility class that evaluates URL capture decisions based on exclude/include patterns. Integrated into both `HttpLensDelegatingHandler` and `DiagnosticInterceptor`.
+- `TrafficFilterCriteria` — immutable record for server-side traffic filtering criteria (method, status, host, search).
+- `TrafficFilter` — static class that applies server-side filtering to traffic records. All criteria combined with AND logic.
+- Server-side filtering on `GET /api/traffic` — new optional query parameters: `method`, `status`, `host`, `search`. Filters applied before pagination; `total` reflects filtered count.
+- Dashboard filter bar — visual filter bar with method dropdown, status dropdown, host input, search input, and clear button. Wired to the client-side store for instant filtering.
+- `FilterBar` TypeScript component — initializes filter inputs and syncs state with the store.
+- Comprehensive test suite: `UrlPatternMatcherTests` (13 tests), handler integration tests (4 tests), `TrafficFilterTests` (12 tests), API integration tests (7 tests).
+
+### Changed
+
+- `HttpLensDelegatingHandler.SendAsync()` now checks URL patterns before creating a traffic record.
+- `DiagnosticInterceptor.HandleStart()` now checks URL patterns before creating a traffic record.
+- `TrafficApiEndpoints.MapHttpLensApi()` GET /traffic endpoint now accepts filter query parameters.
+- Dashboard `index.html` now includes a filter bar between the header and the main layout.
+
 ## [2.0.0] — Security & Authorization
 
 ### Added

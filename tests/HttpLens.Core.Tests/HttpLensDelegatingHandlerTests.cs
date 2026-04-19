@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using HttpLens.Core.Configuration;
 using HttpLens.Core.Interceptors;
-using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -28,10 +27,10 @@ public class HttpLensDelegatingHandlerTests
     }
 
     /// <summary>Minimal <see cref="IOptionsMonitor{TOptions}"/> for testing.</summary>
-    private sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
+    private sealed class TestOptionsMonitor<T>(T value) : IOptionsMonitor<T>
     {
-        private T _value;
-        public TestOptionsMonitor(T value) => _value = value;
+        private T _value = value;
+
         public T CurrentValue => _value;
         public T Get(string? name) => _value;
         public void Set(T value) => _value = value;
@@ -191,5 +190,65 @@ public class HttpLensDelegatingHandlerTests
         // Should pass through without capturing.
         await client.GetAsync("https://example.com/second");
         Assert.Single(store.GetAll()); // still only one record
+    }
+
+    [Fact]
+    public async Task ExcludeUrlPattern_MatchingRequest_IsNotCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.ExcludeUrlPatterns = ["*health*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://example.com/health");
+
+        Assert.Empty(store.GetAll());
+    }
+
+    [Fact]
+    public async Task ExcludeUrlPattern_NonMatchingRequest_IsCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.ExcludeUrlPatterns = ["*health*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://example.com/users");
+
+        Assert.Single(store.GetAll());
+    }
+
+    [Fact]
+    public async Task IncludeUrlPattern_MatchingRequest_IsCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.IncludeUrlPatterns = ["https://api.github.com/*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://api.github.com/repos");
+
+        Assert.Single(store.GetAll());
+    }
+
+    [Fact]
+    public async Task IncludeUrlPattern_NonMatchingRequest_IsNotCaptured()
+    {
+        var (handler, store, _) = Build(o =>
+        {
+            o.IncludeUrlPatterns = ["https://api.github.com/*"];
+        });
+        var response = new HttpResponseMessage(HttpStatusCode.OK);
+        var client = CreateClient(handler, new FakeHandler(response));
+
+        await client.GetAsync("https://internal.example.com/data");
+
+        Assert.Empty(store.GetAll());
     }
 }

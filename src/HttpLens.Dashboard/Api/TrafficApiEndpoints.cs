@@ -1,4 +1,5 @@
 using HttpLens.Core.Export;
+using HttpLens.Core.Filtering;
 using HttpLens.Core.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -31,14 +32,19 @@ public static class TrafficApiEndpoints
         if (!string.IsNullOrEmpty(authorizationPolicy))
             apiGroup.RequireAuthorization(authorizationPolicy);
 
-        // GET /api/traffic?skip=0&take=100
-        apiGroup.MapGet("/traffic", (ITrafficStore store, int skip = 0, int take = 100) =>
+        // GET /api/traffic?skip=0&take=100&method=GET&status=2&host=github.com&search=api
+        apiGroup.MapGet("/traffic", (ITrafficStore store, int skip = 0, int take = 100,
+            string? method = null, string? status = null, string? host = null, string? search = null) =>
         {
             var all = store.GetAll()
                            .OrderByDescending(r => r.Timestamp)
                            .ToList();
-            var page = all.Skip(skip).Take(take).ToList();
-            return Results.Ok(new { total = all.Count, records = page });
+
+            var criteria = new TrafficFilterCriteria(method, status, host, search);
+            var filtered = TrafficFilter.Apply(all, criteria);
+
+            var page = filtered.Skip(skip).Take(take).ToList();
+            return Results.Ok(new { total = filtered.Count, records = page });
         }).ExcludeFromDescription();
 
         // GET /api/traffic/{id:guid}

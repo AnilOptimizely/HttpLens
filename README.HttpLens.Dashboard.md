@@ -50,6 +50,16 @@ Then open **https://localhost:5001/_httplens** in your browser.
 - Sortable by timestamp, method, status, duration
 - Search and filter by method, status code, host, or free text
 
+### 🔎 Filter Bar
+The dashboard includes a visual filter bar for quickly narrowing traffic:
+- **Method dropdown** — filter by GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS
+- **Status dropdown** — filter by 2xx, 3xx, 4xx, 5xx status code classes
+- **Host input** — substring match on the request URL (e.g., "github.com")
+- **Search input** — free-text case-insensitive URL search
+- **Clear Filters button** — reset all filters with one click
+
+Filters are applied both client-side (instant) and server-side (on API calls).
+
 ### 📋 Detail Panel
 Click any row to see the full details:
 - **Request tab** — Method, URI, headers, body (with syntax highlighting for JSON)
@@ -75,12 +85,24 @@ All endpoints are served under the dashboard base path (default: `/_httplens`):
 | Endpoint | Method | Description |
 |---|---|---|
 | `/_httplens/api/traffic?skip=0&take=100` | `GET` | List traffic records with pagination |
+| `/_httplens/api/traffic?method=GET&status=2&host=example.com&search=api` | `GET` | List with server-side filtering |
 | `/_httplens/api/traffic/{id}` | `GET` | Get a single record by ID |
 | `/_httplens/api/traffic` | `DELETE` | Clear all stored records |
 | `/_httplens/api/traffic/retrygroup/{groupId}` | `GET` | Get all attempts in a retry group |
 | `/_httplens/api/traffic/{id}/export/curl` | `GET` | Export a record as a cURL command |
 | `/_httplens/api/traffic/{id}/export/csharp` | `GET` | Export a record as C# HttpClient code |
 | `/_httplens/api/traffic/export/har?ids=...` | `GET` | Export records as HAR 1.2 JSON |
+
+### Traffic API Filter Parameters
+
+| Parameter | Match Type | Example | Description |
+|---|---|---|---|
+| `method` | Exact (case-insensitive) | `?method=GET` | Filter by HTTP method |
+| `status` | Prefix | `?status=4` | Matches 400, 404, 429, etc. |
+| `host` | Substring (case-insensitive) | `?host=github.com` | Filter by host in URL |
+| `search` | Substring (case-insensitive) | `?search=api` | Free-text URL search |
+
+Filters are applied server-side before pagination. The `total` in the response reflects the filtered count.
 
 ## Custom Dashboard Path
 
