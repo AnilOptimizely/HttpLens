@@ -10,7 +10,7 @@ public class SensitiveHeaderMaskerTests
     {
         var headers = new Dictionary<string, string[]>
         {
-            ["Authorization"] = new[] { "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.dummytoken" }
+            ["Authorization"] = new[] { "Bearer fake-test-token-value-for-unit-testing" }
         };
         var sensitive = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Authorization" };
 
@@ -18,7 +18,7 @@ public class SensitiveHeaderMaskerTests
 
         var masked = result["Authorization"][0];
         Assert.StartsWith("Bear", masked);
-        Assert.EndsWith("oken", masked);
+        Assert.EndsWith("ting", masked);
         Assert.Contains("••••••••", masked);
     }
 
