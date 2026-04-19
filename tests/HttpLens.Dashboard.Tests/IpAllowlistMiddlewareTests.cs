@@ -59,7 +59,7 @@ public class IpAllowlistMiddlewareTests
     {
         // ::ffff:127.0.0.1 should match "127.0.0.1"
         var mappedIpv6 = IPAddress.Parse("::ffff:127.0.0.1");
-        Assert.True(IpAllowlistMiddleware.IsIpAllowed(mappedIpv6, new[] { "127.0.0.1" }));
+        Assert.True(IpAllowlistMiddleware.IsIpAllowed(mappedIpv6, ["127.0.0.1"]));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class IpAllowlistMiddlewareTests
         // The middleware skips the check when the list is empty;
         // IsIpAllowed with an empty list should return false (caller skips the call).
         // We verify the static helper returns false for an empty list.
-        Assert.False(IpAllowlistMiddleware.IsIpAllowed(IPAddress.Loopback, Array.Empty<string>()));
+        Assert.False(IpAllowlistMiddleware.IsIpAllowed(IPAddress.Loopback, []));
     }
 
     [Fact]

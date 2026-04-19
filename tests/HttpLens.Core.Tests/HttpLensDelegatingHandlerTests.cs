@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using HttpLens.Core.Configuration;
 using HttpLens.Core.Interceptors;
-using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -28,10 +27,10 @@ public class HttpLensDelegatingHandlerTests
     }
 
     /// <summary>Minimal <see cref="IOptionsMonitor{TOptions}"/> for testing.</summary>
-    private sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
+    private sealed class TestOptionsMonitor<T>(T value) : IOptionsMonitor<T>
     {
-        private T _value;
-        public TestOptionsMonitor(T value) => _value = value;
+        private T _value = value;
+
         public T CurrentValue => _value;
         public T Get(string? name) => _value;
         public void Set(T value) => _value = value;

@@ -10,7 +10,7 @@ public class SensitiveHeaderMaskerTests
     {
         var headers = new Dictionary<string, string[]>
         {
-            ["Authorization"] = new[] { "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.dummytoken" }
+            ["Authorization"] = ["Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.dummytoken"]
         };
         var sensitive = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Authorization" };
 
@@ -27,7 +27,7 @@ public class SensitiveHeaderMaskerTests
     {
         var headers = new Dictionary<string, string[]>
         {
-            ["X-Api-Key"] = new[] { "abc" }
+            ["X-Api-Key"] = ["abc"]
         };
         var sensitive = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "X-Api-Key" };
 
@@ -41,7 +41,7 @@ public class SensitiveHeaderMaskerTests
     {
         var headers = new Dictionary<string, string[]>
         {
-            ["Authorization"] = new[] { "12345678" }
+            ["Authorization"] = ["12345678"]
         };
         var sensitive = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Authorization" };
 
@@ -55,8 +55,8 @@ public class SensitiveHeaderMaskerTests
     {
         var headers = new Dictionary<string, string[]>
         {
-            ["Content-Type"] = new[] { "application/json" },
-            ["Authorization"] = new[] { "Bearer mytoken123" }
+            ["Content-Type"] = ["application/json"],
+            ["Authorization"] = ["Bearer mytoken123"]
         };
         var sensitive = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Authorization" };
 
@@ -71,7 +71,7 @@ public class SensitiveHeaderMaskerTests
     {
         var headers = new Dictionary<string, string[]>
         {
-            ["authorization"] = new[] { "Bearer longtoken1234" }
+            ["authorization"] = ["Bearer longtoken1234"]
         };
         var sensitive = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Authorization" };
 
