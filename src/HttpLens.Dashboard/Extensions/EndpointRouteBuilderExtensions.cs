@@ -1,5 +1,6 @@
 using HttpLens.Core.Configuration;
 using HttpLens.Dashboard.Api;
+using HttpLens.Dashboard.Hubs;
 using HttpLens.Dashboard.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -33,42 +34,21 @@ public static class EndpointRouteBuilderExtensions
         var apiGroup = endpoints.MapHttpLensApi(path, authorizationPolicy);
         apiGroup.AddEndpointFilter(async (ctx, next) =>
         {
-            var monitor = ctx.HttpContext.RequestServices
-                .GetRequiredService<IOptionsMonitor<HttpLensOptions>>();
-            var opts = monitor.CurrentValue;
-
-            // Master switch.
-            if (!opts.IsEnabled)
-                return Results.NotFound();
-
-            // IP allowlist.
-            var remoteIp = ctx.HttpContext.Connection.RemoteIpAddress;
-            if (opts.AllowedIpRanges.Count > 0 &&
-                (remoteIp is null || !IpAllowlistMiddleware.IsIpAllowed(remoteIp, opts.AllowedIpRanges)))
-            {
-                return Results.Json(
-                    new { error = "Access denied" },
-                    statusCode: StatusCodes.Status403Forbidden);
-            }
-
-            // API key.
-            var apiKey = opts.ApiKey;
-            if (!string.IsNullOrEmpty(apiKey))
-            {
-                var providedKey =
-                    ctx.HttpContext.Request.Headers[ApiKeyAuthMiddleware.HeaderName].FirstOrDefault()
-                    ?? ctx.HttpContext.Request.Query[ApiKeyAuthMiddleware.QueryParamName].FirstOrDefault();
-
-                if (!string.Equals(providedKey, apiKey, StringComparison.Ordinal))
-                {
-                    return Results.Json(
-                        new { error = "Invalid or missing HttpLens API key" },
-                        statusCode: StatusCodes.Status401Unauthorized);
-                }
-            }
+            var securityFailure = ValidateSecurity(ctx.HttpContext);
+            if (securityFailure is not null)
+                return securityFailure;
 
             return await next(ctx);
         });
+
+        // SignalR endpoint for real-time updates (when SignalR services are available).
+        if (endpoints.ServiceProvider.GetService<Microsoft.AspNetCore.SignalR.HubLifetimeManager<TrafficHub>>() is not null)
+        {
+            var hubEndpoint = endpoints.MapHub<TrafficHub>($"{path}/hub").ExcludeFromDescription();
+            ApplySecurityGate(hubEndpoint);
+            if (!string.IsNullOrEmpty(authorizationPolicy))
+                hubEndpoint.RequireAuthorization(authorizationPolicy);
+        }
 
         // Build a security sub-pipeline that wraps each SPA route.
         // Order: EnabledGuard → IpAllowlist → ApiKey → handler.
@@ -121,6 +101,60 @@ public static class EndpointRouteBuilderExtensions
         }
 
         return endpoints;
+    }
+
+    private static IResult? ValidateSecurity(HttpContext context)
+    {
+        var monitor = context.RequestServices.GetRequiredService<IOptionsMonitor<HttpLensOptions>>();
+        var opts = monitor.CurrentValue;
+
+        if (!opts.IsEnabled)
+            return Results.NotFound();
+
+        var remoteIp = context.Connection.RemoteIpAddress;
+        if (opts.AllowedIpRanges.Count > 0 &&
+            (remoteIp is null || !IpAllowlistMiddleware.IsIpAllowed(remoteIp, opts.AllowedIpRanges)))
+        {
+            return Results.Json(
+                new { error = "Access denied" },
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        var apiKey = opts.ApiKey;
+        if (string.IsNullOrEmpty(apiKey))
+            return null;
+
+        var providedKey =
+            context.Request.Headers[ApiKeyAuthMiddleware.HeaderName].FirstOrDefault()
+            ?? context.Request.Query[ApiKeyAuthMiddleware.QueryParamName].FirstOrDefault();
+
+        return string.Equals(providedKey, apiKey, StringComparison.Ordinal)
+            ? null
+            : Results.Json(
+                new { error = "Invalid or missing HttpLens API key" },
+                statusCode: StatusCodes.Status401Unauthorized);
+    }
+
+    private static void ApplySecurityGate(IEndpointConventionBuilder builder)
+    {
+        builder.Add(endpointBuilder =>
+        {
+            var original = endpointBuilder.RequestDelegate;
+            if (original is null)
+                return;
+
+            endpointBuilder.RequestDelegate = async context =>
+            {
+                var securityFailure = ValidateSecurity(context);
+                if (securityFailure is not null)
+                {
+                    await securityFailure.ExecuteAsync(context);
+                    return;
+                }
+
+                await original(context);
+            };
+        });
     }
 
     private static string BuildResourceName(string slug)

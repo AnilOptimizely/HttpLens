@@ -1,9 +1,10 @@
 import { TrafficApiService } from './services/traffic-api.service.js';
-import { PollingService } from './services/polling.service.js';
+import { SignalRService } from './services/signalr.service.js';
 import { TrafficTable } from './components/traffic-table.js';
 import { DetailPanel } from './components/detail-panel.js';
 import { Exporters } from './components/exporters.js';
 import { FilterBar } from './components/filter-bar.js';
+import { ConnectionIndicator } from './components/connection-indicator.js';
 import { store } from './state/store.js';
 import { $ } from './utils/dom.js';
 
@@ -13,16 +14,18 @@ async function bootstrap(): Promise<void> {
     window.location.pathname.replace(/\/$/, '');
 
   const api = new TrafficApiService(basePath);
-  const polling = new PollingService(api);
+  const signalR = new SignalRService(basePath, api);
   const table = new TrafficTable();
   const panel = new DetailPanel();
   const exporters = new Exporters();
   const filterBar = new FilterBar();
+  const connectionIndicator = new ConnectionIndicator();
 
   table.init();
   panel.init();
   exporters.init();
   filterBar.init();
+  connectionIndicator.init();
 
   // Theme toggle
   initTheme();
@@ -34,7 +37,7 @@ async function bootstrap(): Promise<void> {
     console.error('Initial fetch failed:', err);
   }
 
-  polling.start();
+  await signalR.start();
 
   // Wire buttons
   $('#btn-clear')?.addEventListener('click', async () => {

@@ -20,6 +20,7 @@ This package depends on `HttpLens.Core` and will pull it in automatically.
 | **Traffic API** | RESTful JSON endpoints for listing, filtering, and exporting captured HTTP traffic |
 | **Export endpoints** | One-click export as cURL, C# `HttpClient` code, or HAR 1.2 files |
 | **Dashboard middleware** | Serves `index.html`, CSS, and JS bundles directly from the NuGet package |
+| **SignalR hub** | Pushes new traffic records in real-time to connected dashboard clients |
 
 ## Quick Start
 
@@ -92,6 +93,7 @@ All endpoints are served under the dashboard base path (default: `/_httplens`):
 | `/_httplens/api/traffic/{id}/export/curl` | `GET` | Export a record as a cURL command |
 | `/_httplens/api/traffic/{id}/export/csharp` | `GET` | Export a record as C# HttpClient code |
 | `/_httplens/api/traffic/export/har?ids=...` | `GET` | Export records as HAR 1.2 JSON |
+| `/_httplens/hub` | `WebSocket/SignalR` | Live push channel for new traffic records |
 
 ### Traffic API Filter Parameters
 

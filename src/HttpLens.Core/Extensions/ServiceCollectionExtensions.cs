@@ -2,8 +2,10 @@ using HttpLens.Core.Configuration;
 using HttpLens.Core.Interceptors;
 using HttpLens.Core.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 
 namespace HttpLens.Core.Extensions;
 
@@ -23,7 +25,16 @@ public static class ServiceCollectionExtensions
         if (configure is not null)
             services.Configure(configure);
 
-        services.AddSingleton<ITrafficStore, InMemoryTrafficStore>();
+        TryAddSignalR(services);
+        services.AddSingleton<InMemoryTrafficStore>();
+        services.AddSingleton<SqliteTrafficStore>();
+        services.AddSingleton<ITrafficStore>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<HttpLensOptions>>();
+            return options.Value.EnableSqlitePersistence
+                ? sp.GetRequiredService<SqliteTrafficStore>()
+                : sp.GetRequiredService<InMemoryTrafficStore>();
+        });
         services.AddTransient<HttpLensDelegatingHandler>();
 
         // Auto-attach to every named/typed HttpClient registered via IHttpClientFactory.
@@ -39,6 +50,7 @@ public static class ServiceCollectionExtensions
         // Process-wide interception via DiagnosticListener for manually-newed HttpClient instances.
         services.AddSingleton<DiagnosticInterceptor>();
         services.AddHostedService<DiagnosticInterceptorHostedService>();
+        TryAddTrafficHubNotifier(services);
 
         return services;
     }
@@ -68,5 +80,25 @@ public static class ServiceCollectionExtensions
         }
 
         return services.AddHttpLens(configure);
+    }
+
+    private static void TryAddTrafficHubNotifier(IServiceCollection services)
+    {
+        const string typeName = "HttpLens.Dashboard.Hubs.TrafficHubNotifier, HttpLens.Dashboard";
+        var notifierType = Type.GetType(typeName, throwOnError: false);
+        if (notifierType is null || !typeof(IHostedService).IsAssignableFrom(notifierType))
+            return;
+
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton(typeof(IHostedService), notifierType));
+    }
+
+    private static void TryAddSignalR(IServiceCollection services)
+    {
+        const string extensionsTypeName = "Microsoft.Extensions.DependencyInjection.SignalRDependencyInjectionExtensions, Microsoft.AspNetCore.SignalR";
+        var extensionsType = Type.GetType(extensionsTypeName, throwOnError: false);
+        var addSignalRMethod = extensionsType?
+            .GetMethod("AddSignalR", [typeof(IServiceCollection)]);
+        _ = addSignalRMethod?.Invoke(null, [services]);
     }
 }

@@ -5,6 +5,7 @@ interface AppState {
   selectedId: string | null;
   filters: FilterState;
   connectionStatus: ConnectionStatus;
+  connectionMode: 'signalr' | 'polling' | 'none';
   totalServerRecords: number;
 }
 
@@ -16,6 +17,7 @@ class Store {
     selectedId: null,
     filters: { method: '', status: '', host: '', search: '' },
     connectionStatus: 'disconnected',
+    connectionMode: 'none',
     totalServerRecords: 0,
   };
 
@@ -53,6 +55,11 @@ class Store {
 
   setConnectionStatus(status: ConnectionStatus): void {
     this.state.connectionStatus = status;
+    this.notify();
+  }
+
+  setConnectionMode(mode: 'signalr' | 'polling' | 'none'): void {
+    this.state.connectionMode = mode;
     this.notify();
   }
 
