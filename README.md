@@ -11,8 +11,8 @@
 - **Polly retry detection** — groups retry attempts visually in the dashboard
 - **Export** — one-click copy as cURL or C# `HttpClient` code; download HAR 1.2 files
 - **Correlation** — W3C Trace ID, inbound request path, HttpClient name
-- **In-memory ring buffer** — configurable max records, thread-safe
-- **Real-time updates** — polling fallback (SignalR planned)
+- **Configurable storage** — in-memory ring buffer by default, optional SQLite persistence
+- **Real-time updates** — SignalR live push with automatic polling fallback
 
 ## Installation
 
@@ -48,6 +48,8 @@ Then open **https://localhost:5001/_httplens** in your browser.
 | `SensitiveHeaders` | `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key` | Headers whose values are masked |
 | `CaptureRequestBody` | `true` | Whether to capture request bodies |
 | `CaptureResponseBody` | `true` | Whether to capture response bodies |
+| `EnableSqlitePersistence` | `false` | Use SQLite-backed persistent storage instead of in-memory |
+| `SqliteDatabasePath` | `httplens.db` | SQLite database file path when persistence is enabled |
 
 ```csharp
 builder.Services.AddHttpLens(options =>
@@ -241,6 +243,7 @@ Toggle between dark and light themes using the 🌙/☀️ button in the header.
 | `GET /_httplens/api/traffic/{id}/export/curl` | Export as cURL |
 | `GET /_httplens/api/traffic/{id}/export/csharp` | Export as C# code |
 | `GET /_httplens/api/traffic/export/har?ids=...` | Export as HAR 1.2 |
+| `POST /_httplens/hub/negotiate` | SignalR negotiate endpoint for live traffic updates |
 
 ## License
 

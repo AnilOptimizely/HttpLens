@@ -17,6 +17,7 @@ dotnet add package HttpLens.Core
 | **`HttpLensDelegatingHandler`** | A `DelegatingHandler` that automatically intercepts every `HttpClient` request/response registered via `IHttpClientFactory` |
 | **`DiagnosticInterceptor`** | Captures traffic from manually-created `HttpClient` instances via `DiagnosticListener` |
 | **`InMemoryTrafficStore`** | Thread-safe, ring-buffer storage for captured `HttpTrafficRecord` objects |
+| **`SqliteTrafficStore`** | Optional SQLite-backed storage for persisted traffic across app restarts |
 | **`HttpLensOptions`** | Configuration for max records, body capture limits, sensitive header masking, and more |
 | **`RetryDetectionHandler`** | Groups Polly retry attempts under a shared `RetryGroupId` |
 | **Export utilities** | `CurlExporter`, `CSharpExporter`, and `HarExporter` for exporting captured traffic |
@@ -84,6 +85,8 @@ builder.Services.AddHttpLens(options =>
 | `AllowedIpRanges` | `[]` (all) | Restrict by IPv4, IPv6, or CIDR range |
 | `ExcludeUrlPatterns` | `[]` | Glob patterns — URLs matching ANY pattern are NOT captured. `*` matches any characters. |
 | `IncludeUrlPatterns` | `[]` | Glob patterns — when non-empty, ONLY matching URLs are captured. Exclude takes precedence. |
+| `EnableSqlitePersistence` | `false` | Enable persistent SQLite storage instead of in-memory storage |
+| `SqliteDatabasePath` | `httplens.db` | SQLite database path used when persistence is enabled |
 
 ### URL Filtering
 

@@ -10,13 +10,15 @@ export class PollingService {
   ) {}
 
   start(): void {
+    store.setConnectionMode('polling');
     store.setConnectionStatus('connected');
     this.timerId = setInterval(async () => {
       try {
         const data = await this.api.fetchTraffic();
         store.setRecords(data.records, data.total);
+        store.setConnectionStatus('connected');
       } catch {
-        store.setConnectionStatus('reconnecting');
+        store.setConnectionStatus('disconnected');
       }
     }, this.intervalMs);
   }
@@ -26,6 +28,9 @@ export class PollingService {
       clearInterval(this.timerId);
       this.timerId = null;
     }
-    store.setConnectionStatus('disconnected');
+    if (store.getState().connectionMode === 'polling') {
+      store.setConnectionStatus('disconnected');
+      store.setConnectionMode('none');
+    }
   }
 }
