@@ -97,8 +97,24 @@ public static class ServiceCollectionExtensions
     {
         const string extensionsTypeName = "Microsoft.Extensions.DependencyInjection.SignalRDependencyInjectionExtensions, Microsoft.AspNetCore.SignalR";
         var extensionsType = Type.GetType(extensionsTypeName, throwOnError: false);
+        if (extensionsType is null)
+            return;
+
         var addSignalRMethod = extensionsType?
             .GetMethod("AddSignalR", [typeof(IServiceCollection)]);
-        _ = addSignalRMethod?.Invoke(null, [services]);
+        if (addSignalRMethod is null)
+        {
+            System.Diagnostics.Trace.WriteLine("HttpLens: SignalR extensions type was found, but AddSignalR(IServiceCollection) was not found.");
+            return;
+        }
+
+        try
+        {
+            _ = addSignalRMethod.Invoke(null, [services]);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.WriteLine($"HttpLens: failed to invoke AddSignalR(IServiceCollection): {ex}");
+        }
     }
 }
