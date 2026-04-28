@@ -3,25 +3,67 @@ using HttpLens.Core.Models;
 using HttpLens.Core.Storage;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
+using System.Threading;
 using Xunit;
 
 namespace HttpLens.Core.Tests;
 
-public sealed class SqliteTrafficStoreTests : IDisposable
+public sealed class SqliteTrafficStoreTests
 {
     private readonly string _tempDirectory = Path.Combine(Path.GetTempPath(), "httplens-tests", Guid.NewGuid().ToString("N"));
+    private static readonly string[] expected = ["c"];
+    private static readonly string[] expectedArray = ["a", "b"];
 
     [Fact]
     public void AddAndGetById_RecordExists_ReturnsRecord()
     {
-        var store = CreateStore();
-        var record = CreateRecord();
+        var dbPath = CreateTempDbPath();
+        var store = CreateStore(databasePath: dbPath);
+        try
+        {
+            var record = CreateRecord();
+            store.Add(record);
+            var found = store.GetById(record.Id);
 
-        store.Add(record);
-        var found = store.GetById(record.Id);
+            Assert.NotNull(found);
+            Assert.Equal(record.Id, found!.Id);
+        }
+        finally
+        {
+            TryDeleteFileBestEffort(dbPath);
+        }
+    }
 
-        Assert.NotNull(found);
-        Assert.Equal(record.Id, found!.Id);
+    private static void TryDeleteFileBestEffort(string dbPath)
+    {
+        const int maxAttempts = 20;
+
+        for (var i = 1; i <= maxAttempts; i++)
+        {
+            try
+            {
+                if (File.Exists(dbPath))
+                    File.Delete(dbPath);
+
+                var dir = Path.GetDirectoryName(dbPath);
+                if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+
+                return;
+            }
+            catch (IOException)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                Thread.Sleep(100 * i);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Thread.Sleep(100 * i);
+            }
+        }
+
+        // Intentionally DO NOT throw. Cleanup is best effort.
     }
 
     [Fact]
@@ -40,6 +82,16 @@ public sealed class SqliteTrafficStoreTests : IDisposable
         Assert.Equal(2, all.Count);
         Assert.Equal(newer.Id, all[0].Id);
         Assert.Equal(older.Id, all[1].Id);
+    }
+
+    // Apply same try/finally pattern to each test...
+    // For Constructor_FilePathConfigured..., use a unique dbPath instead of shared "schema-test.db"
+
+    private static string CreateTempDbPath()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "httplens-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        return Path.Combine(dir, $"{Guid.NewGuid():N}.db");
     }
 
     [Fact]
@@ -107,8 +159,8 @@ public sealed class SqliteTrafficStoreTests : IDisposable
         var found = store.GetById(record.Id);
 
         Assert.NotNull(found);
-        Assert.Equal(new[] { "a", "b" }, found!.RequestHeaders["X-Test"]);
-        Assert.Equal(new[] { "c" }, found.ResponseHeaders["Y-Test"]);
+        Assert.Equal(expectedArray, found!.RequestHeaders["X-Test"]);
+        Assert.Equal(expected, found.ResponseHeaders["Y-Test"]);
     }
 
     [Fact]
@@ -139,24 +191,57 @@ public sealed class SqliteTrafficStoreTests : IDisposable
     [Fact]
     public void Constructor_FilePathConfigured_CreatesSchemaOnFirstUse()
     {
-        var databasePath = Path.Combine(_tempDirectory, "schema-test.db");
-        var store = CreateStore(databasePath: databasePath);
+        var uniqueDir = Path.Combine(Path.GetTempPath(), "httplens-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(uniqueDir);
 
-        _ = store.Count;
+        var databasePath = Path.Combine(uniqueDir, $"schema-test-{Guid.NewGuid():N}.db");
+        try
+        {
+            var store = CreateStore(databasePath: databasePath);
 
-        Assert.True(File.Exists(databasePath));
-        using var connection = new SqliteConnection($"Data Source={databasePath};Cache=Shared");
-        connection.Open();
-        using var command = connection.CreateCommand();
-        command.CommandText = "SELECT version FROM schema_version LIMIT 1;";
-        var version = Convert.ToInt32(command.ExecuteScalar());
-        Assert.Equal(1, version);
+            _ = store.Count; // triggers initialization/schema creation
+
+            Assert.True(File.Exists(databasePath));
+
+            using var connection = new SqliteConnection($"Data Source={databasePath};Cache=Shared");
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT version FROM schema_version LIMIT 1;";
+            var version = Convert.ToInt32(command.ExecuteScalar());
+            Assert.Equal(1, version);
+        }
+        finally
+        {
+            // best-effort cleanup
+            TryDeleteFileBestEffort(databasePath); // your retry helper
+        }
     }
 
     public void Dispose()
     {
-        if (Directory.Exists(_tempDirectory))
-            Directory.Delete(_tempDirectory, recursive: true);
+        if (!Directory.Exists(_tempDirectory))
+            return;
+
+        const int maxAttempts = 10;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                Directory.Delete(_tempDirectory, recursive: true);
+                return;
+            }
+            catch (IOException) when (attempt < maxAttempts)
+            {
+                Thread.Sleep(100 * attempt);
+            }
+            catch (UnauthorizedAccessException) when (attempt < maxAttempts)
+            {
+                Thread.Sleep(100 * attempt);
+            }
+        }
+
+        // Final attempt throws if still locked
+        Directory.Delete(_tempDirectory, recursive: true);
     }
 
     private SqliteTrafficStore CreateStore(int maxStoredRecords = 500, string? databasePath = null)
@@ -178,8 +263,8 @@ public sealed class SqliteTrafficStoreTests : IDisposable
         Timestamp = DateTimeOffset.UtcNow,
         Duration = TimeSpan.FromMilliseconds(123),
         HttpClientName = "test",
-        RequestHeaders = new Dictionary<string, string[]>(),
-        ResponseHeaders = new Dictionary<string, string[]>(),
+        RequestHeaders = [],
+        ResponseHeaders = [],
         IsSuccess = true
     };
 }
