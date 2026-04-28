@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.3.0] — Real-Time & Persistence
+
+### Added
+
+- SignalR hub endpoint at `/_httplens/hub` for real-time push of new traffic records
+- `TrafficHubNotifier` hosted service that broadcasts `RecordAdded` events to connected clients
+- Optional SQLite persistence via `SqliteTrafficStore` with schema versioning (`schema_version` table)
+- New options:
+  - `EnableSqlitePersistence` (default: `false`)
+  - `SqliteDatabasePath` (default: `httplens.db`)
+- Dashboard SignalR client with automatic reconnect and polling fallback
+- Header connection indicator states: `⚡ Live`, `🔄 Polling`, `🔁 Reconnecting...`, `⚠️ Disconnected`
+- New tests for SQLite store behavior, DI store selection, hub notifier broadcasting, and hub endpoint security
+
+### Changed
+
+- `AddHttpLens()` now conditionally registers `SqliteTrafficStore` or `InMemoryTrafficStore`
+- `MapHttpLensDashboard()` now maps and secures the SignalR hub endpoint
+- Dashboard transport changed from polling-only to SignalR-first with fallback polling
+
 ## [1.2.0] — Filtering & URL Patterns
 
 ### Added

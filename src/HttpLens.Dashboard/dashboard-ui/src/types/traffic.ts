@@ -38,4 +38,4 @@ export interface FilterState {
   search: string;
 }
 
-export type ConnectionStatus = 'connected' | 'reconnecting' | 'disconnected';
+export type ConnectionStatus = 'connected' | 'live' | 'reconnecting' | 'disconnected';

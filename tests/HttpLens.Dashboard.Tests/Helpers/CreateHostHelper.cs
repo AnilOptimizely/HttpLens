@@ -33,6 +33,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             opts.ApiKey = apiKey;
                             opts.AllowedIpRanges = [.. allowedIpRanges];
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -87,6 +88,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
                             return new InMemoryTrafficStore(opts);
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -135,6 +137,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
                             return new InMemoryTrafficStore(opts);
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -182,6 +185,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
                             return new InMemoryTrafficStore(opts);
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -231,6 +235,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
                             return new InMemoryTrafficStore(opts);
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -271,6 +276,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                         {
                             opts.AllowedEnvironments = [.. allowedEnvironments];
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -323,6 +329,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             var opts = sp.GetRequiredService<IOptions<HttpLensOptions>>();
                             return new InMemoryTrafficStore(opts);
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -359,6 +366,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                     {
                         // Zero-config: just AddHttpLens() with no parameters
                         services.AddHttpLens();
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -390,6 +398,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                     web.ConfigureServices(services =>
                     {
                         services.AddHttpLens(configure);
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -425,6 +434,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             var opts = Options.Create(new HttpLensOptions());
                             return new InMemoryTrafficStore(opts);
                         });
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>
@@ -473,6 +483,7 @@ namespace HttpLens.Dashboard.Tests.Helpers
                             return new InMemoryTrafficStore(opts);
                         });
 
+                        services.AddSignalR();
                         services.AddRouting();
                     });
                     web.Configure(app =>

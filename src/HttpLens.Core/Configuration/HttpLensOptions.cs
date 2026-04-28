@@ -89,4 +89,16 @@ public sealed class HttpLensOptions
     /// Example: ["https://api.github.com/*", "*/graphql"]
     /// </summary>
     public List<string> IncludeUrlPatterns { get; set; } = [];
+
+    /// <summary>
+    /// Enables SQLite-backed persistence for captured traffic.
+    /// When <see langword="false"/> (default), in-memory storage is used.
+    /// </summary>
+    public bool EnableSqlitePersistence { get; set; }
+
+    /// <summary>
+    /// SQLite database file path used when <see cref="EnableSqlitePersistence"/> is enabled.
+    /// Default: <c>httplens.db</c>.
+    /// </summary>
+    public string SqliteDatabasePath { get; set; } = "httplens.db";
 }
