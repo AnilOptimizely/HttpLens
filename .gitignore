@@ -16,3 +16,8 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+# Placeholder package generated outputs
+placeholders/artifacts/
+placeholders/packages/**/bin/
+placeholders/packages/**/obj/
+placeholders/packages/**/*.csproj.lscache
