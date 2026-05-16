@@ -1,0 +1,12 @@
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\bin\Release\net10.0\BlazorLens.deps.json
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\bin\Release\net10.0\BlazorLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\bin\Release\net10.0\BlazorLens.pdb
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\BlazorLens.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\BlazorLens.AssemblyInfoInputs.cache
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\BlazorLens.AssemblyInfo.cs
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\BlazorLens.csproj.CoreCompileInputs.cache
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\BlazorLens.sourcelink.json
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\BlazorLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\refint\BlazorLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\BlazorLens.pdb
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\BlazorLens\obj\Release\net10.0\ref\BlazorLens.dll

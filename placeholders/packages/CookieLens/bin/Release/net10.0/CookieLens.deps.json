@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "CookieLens/0.0.1-placeholder": {
+        "runtime": {
+          "CookieLens.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "CookieLens/0.0.1-placeholder": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

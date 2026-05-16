@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>DiLens</PackageId>
+    <Title>DiLens</Title>
+    <Description>[Placeholder] Dependency injection graph and lifetime diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

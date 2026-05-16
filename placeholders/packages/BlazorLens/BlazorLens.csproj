@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>BlazorLens</PackageId>
+    <Title>BlazorLens</Title>
+    <Description>[Placeholder] Blazor render and component diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

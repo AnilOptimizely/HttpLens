@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>CookieLens</PackageId>
+    <Title>CookieLens</Title>
+    <Description>[Placeholder] Cookie security and Set-Cookie diagnostics for ASP.NET Core applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

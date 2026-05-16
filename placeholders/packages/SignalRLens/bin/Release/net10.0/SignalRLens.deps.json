@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "SignalRLens/0.0.1-placeholder": {
+        "runtime": {
+          "SignalRLens.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SignalRLens/0.0.1-placeholder": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

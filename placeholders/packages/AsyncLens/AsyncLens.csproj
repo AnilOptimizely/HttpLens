@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>AsyncLens</PackageId>
+    <Title>AsyncLens</Title>
+    <Description>[Placeholder] Async flow and Task diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

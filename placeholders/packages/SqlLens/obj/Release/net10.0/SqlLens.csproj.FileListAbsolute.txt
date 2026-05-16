@@ -1,0 +1,12 @@
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\bin\Release\net10.0\SqlLens.deps.json
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\bin\Release\net10.0\SqlLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\bin\Release\net10.0\SqlLens.pdb
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\SqlLens.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\SqlLens.AssemblyInfoInputs.cache
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\SqlLens.AssemblyInfo.cs
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\SqlLens.csproj.CoreCompileInputs.cache
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\SqlLens.sourcelink.json
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\SqlLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\refint\SqlLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\SqlLens.pdb
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\SqlLens\obj\Release\net10.0\ref\SqlLens.dll

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>SqlLens</PackageId>
+    <Title>SqlLens</Title>
+    <Description>[Placeholder] SQL query diagnostics and database visibility for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

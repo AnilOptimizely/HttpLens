@@ -1,0 +1,12 @@
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\bin\Release\net10.0\DiLens.deps.json
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\bin\Release\net10.0\DiLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\bin\Release\net10.0\DiLens.pdb
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\DiLens.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\DiLens.AssemblyInfoInputs.cache
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\DiLens.AssemblyInfo.cs
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\DiLens.csproj.CoreCompileInputs.cache
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\DiLens.sourcelink.json
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\DiLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\refint\DiLens.dll
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\DiLens.pdb
+C:\Users\PATELAN\source\repos\HttpLens\placeholders\packages\DiLens\obj\Release\net10.0\ref\DiLens.dll

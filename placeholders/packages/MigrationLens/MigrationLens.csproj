@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>MigrationLens</PackageId>
+    <Title>MigrationLens</Title>
+    <Description>[Placeholder] Database migration and schema drift diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>
