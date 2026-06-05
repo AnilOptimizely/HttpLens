@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>AiLens</PackageId>
+    <Title>AiLens</Title>
+    <Description>[Placeholder] AI, LLM, token, prompt, and model-call diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

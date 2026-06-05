@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>JwtLens</PackageId>
+    <Title>JwtLens</Title>
+    <Description>[Placeholder] JWT inspection and diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

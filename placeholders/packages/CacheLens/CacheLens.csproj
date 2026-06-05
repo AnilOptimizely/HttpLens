@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>CacheLens</PackageId>
+    <Title>CacheLens</Title>
+    <Description>[Placeholder] Cache hit, miss, eviction, and stampede diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>SignalRLens</PackageId>
+    <Title>SignalRLens</Title>
+    <Description>[Placeholder] SignalR connection and message diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>

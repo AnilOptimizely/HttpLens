@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>GcLens</PackageId>
+    <Title>GcLens</Title>
+    <Description>[Placeholder] Garbage collection and allocation diagnostics for .NET applications. Part of the Lens family for .NET.</Description>
+  </PropertyGroup>
+</Project>
