@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>Lens.Abstractions</PackageId>
+    <Description>Shared abstractions for the Lens family of .NET diagnostics packages</Description>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Authors>Anil Patel</Authors>
+    <Copyright>Anil Patel 2026</Copyright>
+    <RepositoryUrl>https://github.com/AnilOptimizely/HttpLens</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/AnilOptimizely/HttpLens/tree/main/src/Lens.Abstractions</PackageProjectUrl>
+    <Version>0.1.0-preview.1</Version>
+    <RepositoryType>git</RepositoryType>
+    <Title>Lens.Abstractions</Title>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lens.Abstractions.Tests" />
+  </ItemGroup>
+</Project>
