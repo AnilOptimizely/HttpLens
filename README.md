@@ -2,6 +2,30 @@
 
 > Install one NuGet package, add two lines of code, and see every outbound HTTP call your app makes — in a browser dashboard.
 
+## The Lens family for .NET
+
+HttpLens is the first package in a broader Lens family for .NET: focused, local-first diagnostics packages that make one runtime area visible with minimal setup.
+
+| Package | Purpose |
+|---|---|
+| HttpLens | Inspect outbound `HttpClient` traffic and retries in a built-in dashboard. |
+| AiLens | Diagnose AI/LLM request pipelines, prompts, and model call behavior. |
+| AsyncLens | Surface async flow, task timing, and continuation behavior. |
+| BlazorLens | Diagnose Blazor render cycles, circuit events, and component interactions. |
+| CacheLens | Track cache hits, misses, expirations, and invalidation behavior. |
+| ConfigLens | Inspect configuration sources, overrides, and effective values. |
+| CookieLens | Diagnose cookie creation, mutation, transport, and policy behavior. |
+| DiLens | Inspect dependency injection registrations, lifetimes, and resolutions. |
+| GcLens | Surface allocation and garbage collection activity for runtime tuning. |
+| JwtLens | Diagnose JWT issuance, claims shape, validation, and failures. |
+| LogLens | Inspect structured logging flow, enrichment, filtering, and sinks. |
+| MailLens | Diagnose email composition, SMTP delivery attempts, and failures. |
+| MigrationLens | Track database migration planning, execution, and drift signals. |
+| SignalRLens | Diagnose SignalR connection lifecycle, hubs, and message flow. |
+| SqlLens | Diagnose SQL command execution, timing, and database interactions. |
+
+> Most Lens packages are currently published as `0.0.1-placeholder` while v0.1 architecture and package design are being finalized.
+
 ## Features
 
 - **Automatic interception** — captures all `HttpClient` requests/responses via `IHttpClientFactory`
