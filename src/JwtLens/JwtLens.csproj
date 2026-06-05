@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>JwtLens</PackageId>
+    <Description>JwtLens — JWT inspection, validation, and diagnostics for .NET applications. Part of the Lens family.</Description>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Authors>Anil Patel</Authors>
+    <Copyright>Anil Patel 2026</Copyright>
+    <RepositoryUrl>https://github.com/AnilOptimizely/HttpLens</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/AnilOptimizely/HttpLens/tree/main/src/JwtLens</PackageProjectUrl>
+    <Version>0.1.0-preview.1</Version>
+    <RepositoryType>git</RepositoryType>
+    <Title>JwtLens</Title>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lens.Abstractions\Lens.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="JwtLens.Tests" />
+  </ItemGroup>
+</Project>
