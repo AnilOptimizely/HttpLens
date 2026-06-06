@@ -21,7 +21,7 @@ public sealed class JwtLensDiagnosticsContributor : ILensDiagnosticsContributor
     /// <inheritdoc />
     public LensPackageMetadata Metadata { get; } = new("JwtLens", "JWT Lens")
     {
-        Description = "Decodes, validates, and explains JWTs flowing through your pipeline.",
+        Description = "Decodes, analyzes, and explains JWTs flowing through your pipeline.",
         Version = "0.1.0-preview.1"
     };
 

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace JwtLens.Middleware;
 
 /// <summary>
-/// ASP.NET Core middleware that inspects inbound requests for JWT ******
+/// ASP.NET Core middleware that inspects inbound requests for JWT bearer tokens.
 /// </summary>
 public sealed class JwtLensMiddleware
 {
@@ -38,7 +38,7 @@ public sealed class JwtLensMiddleware
     }
 
     /// <summary>
-    /// Processes the HTTP request, extracting and analyzing any JWT ******
+    /// Processes the HTTP request, extracting and analyzing any JWT bearer token.
     /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {

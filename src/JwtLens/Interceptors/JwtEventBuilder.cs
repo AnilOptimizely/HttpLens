@@ -45,11 +45,11 @@ internal static class JwtEventBuilder
 
         decodeResult.Payload.TryGetValue("sub", out var subject);
 
-        var claimDiffs = options.TrackClaimDiffs
-            ? diffTracker.TrackAndDiff(subject, decodeResult.Payload)
-            : [];
-
         var redactedPayload = RedactPayload(decodeResult.Payload, options.SensitiveClaimNames, redactor);
+
+        var claimDiffs = options.TrackClaimDiffs
+            ? diffTracker.TrackAndDiff(subject, redactedPayload)
+            : [];
 
         return new CapturedJwt
         {

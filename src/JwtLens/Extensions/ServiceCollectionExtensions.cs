@@ -23,12 +23,13 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         Action<JwtLensOptions>? configure = null)
     {
+        services.AddOptions<JwtLensOptions>();
+
         if (configure is not null)
             services.Configure(configure);
 
         services.TryAddSingleton<IRedactor>(new DefaultRedactor());
         services.AddSingleton<ClaimDiffTracker>();
-        services.AddSingleton<IJwtEventStore, InMemoryJwtEventStore>();
         services.AddSingleton<ILensDiagnosticsContributor, JwtLensDiagnosticsContributor>();
         services.AddTransient<JwtLensDelegatingHandler>();
 

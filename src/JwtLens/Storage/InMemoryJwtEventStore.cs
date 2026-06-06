@@ -36,9 +36,10 @@ public sealed class InMemoryJwtEventStore : IJwtEventStore
         Interlocked.Increment(ref _totalCaptured);
 
         var maxSize = _optionsMonitor.CurrentValue.MaxStoredEvents;
-        while (_queue.Count > maxSize)
+        if (maxSize < 0) maxSize = 0;
+
+        while (_queue.Count > maxSize && _queue.TryDequeue(out _))
         {
-            _queue.TryDequeue(out _);
         }
     }
 
