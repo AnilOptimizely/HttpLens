@@ -51,6 +51,8 @@ public static class JwtDecoder
     /// </summary>
     /// <param name="authorizationHeaderValue">The full Authorization header value.</param>
     /// <returns>The token string, or null if not a valid Bearer header.</returns>
+    public static string? ExtractBearerToken(string? authorizationHeaderValue)
+    {
         if (string.IsNullOrWhiteSpace(authorizationHeaderValue))
             return null;
 
