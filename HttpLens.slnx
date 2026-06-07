@@ -16,6 +16,7 @@
     <Project Path="tests/HttpLens.Dashboard.Tests/HttpLens.Dashboard.Tests.csproj" />
     <Project Path="tests/HttpLens.EndToEnd.Tests/HttpLens.EndToEnd.Tests.csproj" />
     <Project Path="tests/JwtLens.Tests/JwtLens.Tests.csproj" />
+    <Project Path="tests/JwtLens.Regression.Tests/JwtLens.Regression.Tests.csproj" />
     <Project Path="tests/Lens.Abstractions.Tests/Lens.Abstractions.Tests.csproj" />
   </Folder>
 </Solution>
