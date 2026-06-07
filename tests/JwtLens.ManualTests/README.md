@@ -1,32 +1,41 @@
-# JwtLens — Endpoint Test Scripts
+# JwtLens v0.1 — Manual Testing
 
 ## Overview
 
-This directory contains scripts to quickly test all SampleJwtLensApi endpoints. Choose the script that matches your environment:
-
-| Script | Platform | Requirements |
-|--------|----------|-------------|
-| `test-endpoints.sh` | Linux / macOS / WSL | `bash`, `curl` |
-| `test-endpoints.ps1` | Windows / Cross-platform | PowerShell 7+ (`pwsh`) |
+This directory contains scripts for end-to-end manual testing of JwtLens v0.1. The scripts exercise all major features by making HTTP requests to the `SampleJwtLensApi` sample project.
 
 ## Prerequisites
 
-1. **.NET 9 SDK** installed
-2. **SampleJwtLensApi** running locally
+- .NET 9 SDK
+- PowerShell 7+ (pwsh) — for `.ps1` scripts
+- bash + curl — for `.sh` scripts
+- The `SampleJwtLensApi` sample project running locally
 
 ## Quick Start
 
-### 1. Start the Sample API
+### 1. Build the solution
 
-```bash
+```powershell
+dotnet build HttpLens.slnx -c Release
+```
+
+### 2. Start the sample API
+
+```powershell
 cd samples/SampleJwtLensApi
 dotnet run --environment Development
 # App starts on http://localhost:5000
 ```
 
-### 2. Run the test script (in a separate terminal)
+### 3. Run the test scripts (in a new terminal)
 
-**Bash (curl):**
+**Main test runner (PowerShell — comprehensive):**
+```powershell
+cd tests/JwtLens.ManualTests
+./test-jwtlens.ps1 -BaseUrl "http://localhost:5000"
+```
+
+**Quick endpoint smoke test (Bash/curl):**
 ```bash
 cd tests/JwtLens.ManualTests
 chmod +x test-endpoints.sh
@@ -35,7 +44,7 @@ chmod +x test-endpoints.sh
 ./test-endpoints.sh http://localhost:5050
 ```
 
-**PowerShell:**
+**Quick endpoint smoke test (PowerShell):**
 ```powershell
 cd tests/JwtLens.ManualTests
 ./test-endpoints.ps1
@@ -43,18 +52,28 @@ cd tests/JwtLens.ManualTests
 ./test-endpoints.ps1 -BaseUrl "http://localhost:5050"
 ```
 
-## What Gets Tested
+## Test Scripts
+
+| Script | Purpose | Categories |
+|--------|---------|------------|
+| `test-jwtlens.ps1` | Main test runner — all default-options tests | 1 (Inbound), 2 (Outbound), 3 (Redaction), 4 (Claim Diff), 5 (Ring Buffer), 8 (Diagnostics) |
+| `test-jwtlens-environment.ps1` | Environment guard tests (requires restart per scenario) | 6 (Environment Guard) |
+| `test-jwtlens-options.ps1` | Options toggle tests (requires restart per scenario) | 7 (Options) |
+| `test-endpoints.sh` | Quick endpoint smoke test (bash/curl) | All endpoints |
+| `test-endpoints.ps1` | Quick endpoint smoke test (PowerShell) | All endpoints |
+| `helpers/jwt-helpers.ps1` | Shared functions for JWT creation and assertions | Used by all scripts |
+
+## Endpoint Reference
 
 | # | Method | Endpoint | Purpose |
 |---|--------|----------|---------|
-| 1 | GET | `/api/test` | Simple endpoint (no auth) |
-| 2 | GET | `/api/test` | Inbound token capture (with ****** |
-| 3 | GET | `/api/jwt/events` | Returns all stored CapturedJwt events |
-| 4 | GET | `/api/jwt/events/count` | Returns `{ count, totalCaptured }` |
-| 5 | DELETE | `/api/jwt/events` | Clears the event store |
-| 6 | GET | `/api/jwt/diagnostics` | Returns diagnostics metadata and snapshot |
-| 7 | GET | `/api/jwt/options` | Returns current JwtLensOptions |
-| 8 | GET | `/api/outbound-test?token={jwt}` | Triggers outbound HttpClient call with JWT |
+| 1 | GET | `/api/test` | Simple endpoint for inbound token testing |
+| 2 | GET | `/api/jwt/events` | Returns all stored CapturedJwt events |
+| 3 | GET | `/api/jwt/events/count` | Returns `{ count, totalCaptured }` |
+| 4 | DELETE | `/api/jwt/events` | Clears the event store |
+| 5 | GET | `/api/jwt/diagnostics` | Returns diagnostics metadata and snapshot |
+| 6 | GET | `/api/jwt/options` | Returns current JwtLensOptions |
+| 7 | GET | `/api/outbound-test?token={jwt}` | Triggers outbound HttpClient call with JWT |
 
 ## Manual curl Commands
 
@@ -89,34 +108,50 @@ curl -s $BASE/api/jwt/options | jq .
 curl -s "$BASE/api/outbound-test?token=$JWT" | jq .
 ```
 
-## Expected Output
+## Environment Guard Tests (Category 6)
 
-A successful run looks like:
+These tests require restarting the app with different environment variables:
 
+```powershell
+# Test with Development (default — JwtLens active):
+cd samples/SampleJwtLensApi
+$env:ASPNETCORE_ENVIRONMENT = "Development"
+dotnet run
+# Then in another terminal:
+./test-jwtlens-environment.ps1 -BaseUrl "http://localhost:5000"
+
+# Test with Production (JwtLens disabled — requires AllowedEnvironments=["Development"]):
+$env:ASPNETCORE_ENVIRONMENT = "Production"
+dotnet run
+# Then:
+./test-jwtlens-environment.ps1 -BaseUrl "http://localhost:5000" -ExpectDisabled
 ```
-🔍 JwtLens SampleJwtLensApi — Endpoint Tests
-   Target: http://localhost:5000
-✓ Server is reachable
 
-━━━ Basic Connectivity ━━━
-  ✅ PASS: GET /api/test (no auth) (HTTP 200)
+## Options Toggle Tests (Category 7)
 
-━━━ Inbound JWT Capture ━━━
-  ✅ PASS: GET /api/test (with ****** (HTTP 200)
+These tests check specific options. Modify `appsettings.json` and restart the app for each scenario:
 
-━━━ Event Store Endpoints ━━━
-  ✅ PASS: GET /api/jwt/events (HTTP 200)
-  ✅ PASS: GET /api/jwt/events/count (HTTP 200)
-  ✅ PASS: DELETE /api/jwt/events (HTTP 200)
+```powershell
+# Test with IsEnabled=false:
+# Edit appsettings.json: "IsEnabled": false
+dotnet run
+./test-jwtlens-options.ps1 -BaseUrl "http://localhost:5000" -TestScenario "disabled"
 
-━━━ Diagnostics & Options ━━━
-  ✅ PASS: GET /api/jwt/diagnostics (HTTP 200)
-  ✅ PASS: GET /api/jwt/options (HTTP 200)
+# Test with CaptureInboundTokens=false:
+# Edit appsettings.json: "CaptureInboundTokens": false
+dotnet run
+./test-jwtlens-options.ps1 -BaseUrl "http://localhost:5000" -TestScenario "no-inbound"
 
-━━━ Outbound JWT Capture ━━━
-  ✅ PASS: GET /api/outbound-test?token=JWT (HTTP 200)
-
-════════════════════════════════════════
-Results: 8 passed, 0 failed
-════════════════════════════════════════
+# Other scenarios: "no-outbound", "no-weak-alg-flag", "custom-expiry-threshold", "custom-weak-algs"
 ```
+
+## Test Categories
+
+1. **Inbound JWT Capture** — Middleware captures tokens from Authorization headers
+2. **Outbound JWT Capture** — DelegatingHandler captures tokens from HttpClient calls
+3. **Claim Redaction** — Sensitive claims are redacted in stored events
+4. **Claim Diff Tracking** — Changes between consecutive tokens for the same subject are tracked
+5. **Ring Buffer Storage** — Event store respects MaxStoredEvents and FIFO eviction
+6. **Environment Guard** — JwtLens respects AllowedEnvironments configuration
+7. **Options Toggle** — Individual options control specific behaviors
+8. **Diagnostics** — ILensDiagnosticsContributor provides metadata and snapshots
