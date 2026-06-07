@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
             services.Configure(configure);
 
         services.TryAddSingleton<IRedactor>(new DefaultRedactor());
+        services.TryAddSingleton<IJwtEventStore, InMemoryJwtEventStore>();
         services.AddSingleton<ClaimDiffTracker>();
         services.AddSingleton<ILensDiagnosticsContributor, JwtLensDiagnosticsContributor>();
         services.AddTransient<JwtLensDelegatingHandler>();

@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/samples/">
+    <Project Path="samples/SampleJwtLensApi/SampleJwtLensApi.csproj" />
     <Project Path="samples/SampleWebApi/SampleWebApi.csproj" />
     <Project Path="samples/SampleWithPolly/SampleWithPolly.csproj" />
   </Folder>
