@@ -2,12 +2,13 @@
 
 ## Overview
 
-This directory contains PowerShell scripts for end-to-end manual testing of JwtLens v0.1. The scripts exercise all major features by making HTTP requests to the `SampleJwtLensApi` sample project.
+This directory contains scripts for end-to-end manual testing of JwtLens v0.1. The scripts exercise all major features by making HTTP requests to the `SampleJwtLensApi` sample project.
 
 ## Prerequisites
 
 - .NET 9 SDK
-- PowerShell 7+ (pwsh)
+- PowerShell 7+ (pwsh) — for `.ps1` scripts
+- bash + curl — for `.sh` scripts
 - The `SampleJwtLensApi` sample project running locally
 
 ## Quick Start
@@ -26,11 +27,29 @@ dotnet run --environment Development
 # App starts on http://localhost:5000
 ```
 
-### 3. Run the main test script (in a new terminal)
+### 3. Run the test scripts (in a new terminal)
 
+**Main test runner (PowerShell — comprehensive):**
 ```powershell
 cd tests/JwtLens.ManualTests
 ./test-jwtlens.ps1 -BaseUrl "http://localhost:5000"
+```
+
+**Quick endpoint smoke test (Bash/curl):**
+```bash
+cd tests/JwtLens.ManualTests
+chmod +x test-endpoints.sh
+./test-endpoints.sh
+# Or with a custom base URL:
+./test-endpoints.sh http://localhost:5050
+```
+
+**Quick endpoint smoke test (PowerShell):**
+```powershell
+cd tests/JwtLens.ManualTests
+./test-endpoints.ps1
+# Or with a custom base URL:
+./test-endpoints.ps1 -BaseUrl "http://localhost:5050"
 ```
 
 ## Test Scripts
@@ -40,7 +59,54 @@ cd tests/JwtLens.ManualTests
 | `test-jwtlens.ps1` | Main test runner — all default-options tests | 1 (Inbound), 2 (Outbound), 3 (Redaction), 4 (Claim Diff), 5 (Ring Buffer), 8 (Diagnostics) |
 | `test-jwtlens-environment.ps1` | Environment guard tests (requires restart per scenario) | 6 (Environment Guard) |
 | `test-jwtlens-options.ps1` | Options toggle tests (requires restart per scenario) | 7 (Options) |
+| `test-endpoints.sh` | Quick endpoint smoke test (bash/curl) | All endpoints |
+| `test-endpoints.ps1` | Quick endpoint smoke test (PowerShell) | All endpoints |
 | `helpers/jwt-helpers.ps1` | Shared functions for JWT creation and assertions | Used by all scripts |
+
+## Endpoint Reference
+
+| # | Method | Endpoint | Purpose |
+|---|--------|----------|---------|
+| 1 | GET | `/api/test` | Simple endpoint for inbound token testing |
+| 2 | GET | `/api/jwt/events` | Returns all stored CapturedJwt events |
+| 3 | GET | `/api/jwt/events/count` | Returns `{ count, totalCaptured }` |
+| 4 | DELETE | `/api/jwt/events` | Clears the event store |
+| 5 | GET | `/api/jwt/diagnostics` | Returns diagnostics metadata and snapshot |
+| 6 | GET | `/api/jwt/options` | Returns current JwtLensOptions |
+| 7 | GET | `/api/outbound-test?token={jwt}` | Triggers outbound HttpClient call with JWT |
+
+## Manual curl Commands
+
+If you prefer to test individual endpoints manually:
+
+```bash
+BASE=http://localhost:5000
+
+# 1. Simple test endpoint
+curl -s $BASE/api/test | jq .
+
+# 2. Inbound JWT capture (send a token)
+JWT="******"
+curl -s -H "Authorization: ******" $BASE/api/test | jq .
+
+# 3. Get all captured events
+curl -s $BASE/api/jwt/events | jq .
+
+# 4. Get event count
+curl -s $BASE/api/jwt/events/count | jq .
+
+# 5. Clear events
+curl -s -X DELETE $BASE/api/jwt/events | jq .
+
+# 6. Diagnostics
+curl -s $BASE/api/jwt/diagnostics | jq .
+
+# 7. Current options
+curl -s $BASE/api/jwt/options | jq .
+
+# 8. Outbound test (triggers HttpClient call with the given JWT)
+curl -s "$BASE/api/outbound-test?token=$JWT" | jq .
+```
 
 ## Environment Guard Tests (Category 6)
 
