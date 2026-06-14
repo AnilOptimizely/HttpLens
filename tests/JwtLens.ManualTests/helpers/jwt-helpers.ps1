@@ -84,18 +84,32 @@ function Send-JwtRequest {
         [string]$Endpoint = "/api/test"
     )
 
-    $headers = @{ "Authorization" = "******" }
+    $authValue = "Bearer " + $Token
+    $headers = @{ "Authorization" = $authValue }
     Invoke-RestMethod -Uri "$BaseUrl$Endpoint" -Headers $headers -ErrorAction Stop
 }
 
 function Get-JwtEvents {
     param([string]$BaseUrl)
-    Invoke-RestMethod -Uri "$BaseUrl/api/jwt/events" -ErrorAction Stop
+    $result = Invoke-RestMethod -Uri "$BaseUrl/api/jwt/events" -ErrorAction Stop
+    if ($result -is [array]) { return $result }
+    if ($null -eq $result) { return @() }
+    return @($result)
 }
 
 function Get-LastJwtEvent {
     param([string]$BaseUrl)
-    Invoke-RestMethod -Uri "$BaseUrl/api/jwt/events/last" -ErrorAction Stop
+    # Try dedicated endpoint first; fall back to last item in event list
+    try {
+        return (Invoke-RestMethod -Uri "$BaseUrl/api/jwt/events/last" -ErrorAction Stop)
+    }
+    catch {
+        $events = Get-JwtEvents -BaseUrl $BaseUrl
+        if ($events.Count -gt 0) {
+            return $events[$events.Count - 1]
+        }
+        throw "No JWT events found in store"
+    }
 }
 
 function Get-JwtEventCount {
@@ -105,7 +119,7 @@ function Get-JwtEventCount {
 
 function Clear-JwtEvents {
     param([string]$BaseUrl)
-    Invoke-RestMethod -Uri "$BaseUrl/api/jwt/events" -Method Delete -ErrorAction Stop
+    Invoke-RestMethod -Uri "$BaseUrl/api/jwt/events" -Method Delete -ErrorAction Stop | Out-Null
 }
 
 # ============================================================
