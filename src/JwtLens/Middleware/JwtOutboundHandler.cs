@@ -1,3 +1,4 @@
+using JwtLens.Analysis;
 using JwtLens.Storage;
 
 namespace JwtLens.Middleware;

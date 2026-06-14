@@ -51,7 +51,7 @@ public sealed class ClaimDiffTrackerTests
         Assert.Equal("role", diffs[0].ClaimName);
         Assert.Equal(ClaimDiffType.Modified, diffs[0].DiffType);
         Assert.Equal("admin", diffs[0].PreviousValue);
-        Assert.Equal("user", diffs[0].NewValue);
+        Assert.Equal("user", diffs[0].CurrentValue);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class ClaimDiffTrackerTests
         Assert.Equal("role", diffs[0].ClaimName);
         Assert.Equal(ClaimDiffType.Added, diffs[0].DiffType);
         Assert.Null(diffs[0].PreviousValue);
-        Assert.Equal("admin", diffs[0].NewValue);
+        Assert.Equal("admin", diffs[0].CurrentValue);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class ClaimDiffTrackerTests
         Assert.Equal("role", diffs[0].ClaimName);
         Assert.Equal(ClaimDiffType.Removed, diffs[0].DiffType);
         Assert.Equal("admin", diffs[0].PreviousValue);
-        Assert.Null(diffs[0].NewValue);
+        Assert.Null(diffs[0].CurrentValue);
     }
 
     [Fact]

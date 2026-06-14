@@ -47,7 +47,7 @@ public sealed class JwtLensMiddleware
         if (options.IsEnabled && options.CaptureInboundTokens)
         {
             var authHeader = context.Request.Headers.Authorization.ToString();
-            var token = JwtDecoder.ExtractBearerToken(authHeader);
+            var token = Analysis.JwtDecoder.ExtractBearerToken(authHeader);
 
             if (token is not null)
             {
