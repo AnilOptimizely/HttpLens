@@ -3,6 +3,7 @@
     <Project Path="samples/SampleJwtLensApi/SampleJwtLensApi.csproj" />
     <Project Path="samples/SampleWebApi/SampleWebApi.csproj" />
     <Project Path="samples/SampleWithPolly/SampleWithPolly.csproj" />
+    <Project Path="samples/SampleJwtLensApi/SampleJwtLensApi.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/HttpLens.Core/HttpLens.Core.csproj" />
@@ -10,6 +11,7 @@
     <Project Path="src/HttpLens/HttpLens.csproj" />
     <Project Path="src/JwtLens/JwtLens.csproj" />
     <Project Path="src/Lens.Abstractions/Lens.Abstractions.csproj" />
+    <Project Path="src/JwtLens/JwtLens.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/HttpLens.Core.Tests/HttpLens.Core.Tests.csproj" />

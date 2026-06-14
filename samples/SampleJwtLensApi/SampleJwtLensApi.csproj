@@ -3,6 +3,6 @@
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\JwtLens\JwtLens.csproj" />
+    <ProjectReference Include="../../src/JwtLens/JwtLens.csproj" />
   </ItemGroup>
 </Project>

@@ -1,34 +1,19 @@
 namespace JwtLens.Models;
 
 /// <summary>
-/// Represents a difference in claims between two consecutive tokens for the same subject.
+/// Represents a detected difference in a claim between consecutive tokens for the same subject.
 /// </summary>
 public sealed class ClaimDiff
 {
     /// <summary>The name of the claim that changed.</summary>
-    public required string ClaimName { get; init; }
+    public string ClaimName { get; init; } = string.Empty;
 
-    /// <summary>The previous value (null if claim was added).</summary>
+    /// <summary>The type of change detected.</summary>
+    public ClaimDiffType DiffType { get; init; }
+
+    /// <summary>The previous value (null for Added).</summary>
     public string? PreviousValue { get; init; }
 
-    /// <summary>The new value (null if claim was removed).</summary>
-    public string? NewValue { get; init; }
-
-    /// <summary>The type of change.</summary>
-    public required ClaimDiffType DiffType { get; init; }
-}
-
-/// <summary>
-/// Types of claim differences.
-/// </summary>
-public enum ClaimDiffType
-{
-    /// <summary>Claim was added in the new token.</summary>
-    Added,
-
-    /// <summary>Claim was removed from the new token.</summary>
-    Removed,
-
-    /// <summary>Claim value changed between tokens.</summary>
-    Modified
+    /// <summary>The current value (null for Removed).</summary>
+    public string? CurrentValue { get; init; }
 }

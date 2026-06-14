@@ -7,7 +7,7 @@
 .PARAMETER BaseUrl
     Base URL of the running SampleJwtLensApi instance. Default: http://localhost:5000
 
-.PARAMETER Verbose
+.PARAMETER VerboseOutput
     Show additional debug output.
 
 .EXAMPLE
@@ -26,46 +26,58 @@ $script:FailCount = 0
 . "$PSScriptRoot/helpers/jwt-helpers.ps1"
 
 function Test-Case {
-    param([string]$Name, [scriptblock]$Test)
+    param(
+        [string]$Name,
+        [scriptblock]$Test
+    )
+
     try {
         $result = & $Test
         if ($result -eq $true) {
-            Write-Host "  ✅ PASS: $Name" -ForegroundColor Green
+            Write-Host "  PASS: $Name" -ForegroundColor Green
             $script:PassCount++
-        } else {
-            Write-Host "  ❌ FAIL: $Name (returned $result)" -ForegroundColor Red
+        }
+        else {
+            Write-Host "  FAIL: $Name (returned $result)" -ForegroundColor Red
             $script:FailCount++
         }
-    } catch {
-        Write-Host "  ❌ FAIL: $Name — $($_.Exception.Message)" -ForegroundColor Red
-        if ($VerboseOutput) { Write-Host "    $($_.ScriptStackTrace)" -ForegroundColor DarkGray }
+    }
+    catch {
+        Write-Host "  FAIL: $Name - $($_.Exception.Message)" -ForegroundColor Red
+        if ($VerboseOutput) {
+            Write-Host "    $($_.ScriptStackTrace)" -ForegroundColor DarkGray
+        }
         $script:FailCount++
     }
 }
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Pre-flight: verify server is running
-# ════════════════════════════════════════════════════════════
-Write-Host "`n🔍 JwtLens v0.1 — Manual Test Runner" -ForegroundColor Cyan
-Write-Host "Target: $BaseUrl`n"
+# ============================================================
+Write-Host ""
+Write-Host "JwtLens v0.1 - Manual Test Runner" -ForegroundColor Cyan
+Write-Host "Target: $BaseUrl"
+Write-Host ""
 
 try {
     Invoke-RestMethod -Uri "$BaseUrl/api/test" -ErrorAction Stop | Out-Null
-    Write-Host "✓ Server is reachable`n" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Cannot reach server at $BaseUrl — is SampleJwtLensApi running?" -ForegroundColor Red
+    Write-Host "Server is reachable" -ForegroundColor Green
+    Write-Host ""
+}
+catch {
+    Write-Host "Cannot reach server at $BaseUrl - is SampleJwtLensApi running?" -ForegroundColor Red
     exit 1
 }
 
 # Clear store before testing
 Clear-JwtEvents -BaseUrl $BaseUrl
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Category 1: Inbound JWT Capture (Middleware)
-# ════════════════════════════════════════════════════════════
-Write-Host "━━━ Category 1: Inbound JWT Capture ━━━" -ForegroundColor Yellow
+# ============================================================
+Write-Host "--- Category 1: Inbound JWT Capture ---" -ForegroundColor Yellow
 
-Test-Case "1.1 Valid RS256 token" {
+Test-Case -Name "1.1 Valid RS256 token" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $exp = Get-UnixTimestamp -OffsetMinutes 60
     $token = New-TestJwt -Header @{ alg = "RS256"; typ = "JWT" } -Payload @{ sub = "user1"; iss = "test"; aud = "api"; exp = $exp }
@@ -77,7 +89,7 @@ Test-Case "1.1 Valid RS256 token" {
     $event.algorithmWarnings.Count -eq 0
 }
 
-Test-Case "1.2 Valid HS256 (weak algorithm)" {
+Test-Case -Name "1.2 Valid HS256 (weak algorithm)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Header @{ alg = "HS256"; typ = "JWT" } -Payload @{ sub = "user1"; iss = "test" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -87,7 +99,7 @@ Test-Case "1.2 Valid HS256 (weak algorithm)" {
     $event.algorithmWarnings.Count -gt 0 -and $event.algorithmWarnings[0].severity -eq "Warning"
 }
 
-Test-Case "1.3 alg:none (critical)" {
+Test-Case -Name "1.3 alg:none (critical)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwtNoSignature -Header @{ alg = "none" } -Payload @{ sub = "user1" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -96,7 +108,7 @@ Test-Case "1.3 alg:none (critical)" {
     $event.algorithmWarnings.Count -gt 0 -and $event.algorithmWarnings[0].severity -eq "Critical"
 }
 
-Test-Case "1.4 Expired token" {
+Test-Case -Name "1.4 Expired token" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $exp = Get-UnixTimestamp -OffsetMinutes -10
     $token = New-TestJwt -Header @{ alg = "RS256"; typ = "JWT" } -Payload @{ sub = "user1"; exp = $exp }
@@ -105,7 +117,7 @@ Test-Case "1.4 Expired token" {
     Assert-True -Actual $event.isExpired -Field "IsExpired"
 }
 
-Test-Case "1.5 Expiring soon (within 5min threshold)" {
+Test-Case -Name "1.5 Expiring soon (within 5min threshold)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $exp = Get-UnixTimestamp -OffsetMinutes 3
     $token = New-TestJwt -Header @{ alg = "RS256"; typ = "JWT" } -Payload @{ sub = "user1"; exp = $exp }
@@ -115,7 +127,7 @@ Test-Case "1.5 Expiring soon (within 5min threshold)" {
     Assert-False -Actual $event.isExpired -Field "IsExpired"
 }
 
-Test-Case "1.6 No expiry claim" {
+Test-Case -Name "1.6 No expiry claim" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Header @{ alg = "RS256"; typ = "JWT" } -Payload @{ sub = "user1"; iss = "test" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -125,8 +137,9 @@ Test-Case "1.6 No expiry claim" {
     Assert-Null -Actual $event.expiresAt -Field "ExpiresAt"
 }
 
-Test-Case "1.7 Malformed token (1 segment)" {
+Test-Case -Name "1.7 Malformed token - 1 segment" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
+    $token = "malformedtoken"
     $headers = @{ "Authorization" = "******" }
     Invoke-RestMethod -Uri "$BaseUrl/api/test" -Headers $headers -ErrorAction Stop | Out-Null
     $event = Get-LastJwtEvent -BaseUrl $BaseUrl
@@ -134,14 +147,14 @@ Test-Case "1.7 Malformed token (1 segment)" {
     Assert-Contains -Expected "Invalid JWT structure" -Actual $event.decodeError -Field "DecodeError"
 }
 
-Test-Case "1.8 No Authorization header (no capture)" {
+Test-Case -Name "1.8 No Authorization header (no capture)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     Invoke-RestMethod -Uri "$BaseUrl/api/test" -ErrorAction Stop | Out-Null
     $count = (Get-JwtEventCount -BaseUrl $BaseUrl).count
     Assert-Equal -Expected 0 -Actual $count -Field "EventCount"
 }
 
-Test-Case "1.9 Basic auth (non-Bearer, no capture)" {
+Test-Case -Name "1.9 Basic auth - non-Bearer, no capture" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $headers = @{ "Authorization" = "Basic dXNlcjpwYXNz" }
     Invoke-RestMethod -Uri "$BaseUrl/api/test" -Headers $headers -ErrorAction Stop | Out-Null
@@ -149,7 +162,7 @@ Test-Case "1.9 Basic auth (non-Bearer, no capture)" {
     Assert-Equal -Expected 0 -Actual $count -Field "EventCount"
 }
 
-Test-Case "1.10 Empty ****** (no capture)" {
+Test-Case -Name "1.10 Empty ****** capture)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $headers = @{ "Authorization" = "Bearer " }
     Invoke-RestMethod -Uri "$BaseUrl/api/test" -Headers $headers -ErrorAction Stop | Out-Null
@@ -157,7 +170,7 @@ Test-Case "1.10 Empty ****** (no capture)" {
     Assert-Equal -Expected 0 -Actual $count -Field "EventCount"
 }
 
-Test-Case "1.11 Token with 2 segments (no signature)" {
+Test-Case -Name "1.11 Token with 2 segments (no signature)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwtTwoSegments -Header @{ alg = "RS256"; typ = "JWT" } -Payload @{ sub = "user1" }
     $headers = @{ "Authorization" = "******" }
@@ -167,7 +180,7 @@ Test-Case "1.11 Token with 2 segments (no signature)" {
     Assert-False -Actual $event.hasSignature -Field "HasSignature"
 }
 
-Test-Case "1.12 Token with invalid Base64 in header" {
+Test-Case -Name "1.12 Token with invalid Base64 in header" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = "!!!invalid-base64!!!.eyJzdWIiOiJ1c2VyMSJ9.signature"
     $headers = @{ "Authorization" = "******" }
@@ -177,24 +190,23 @@ Test-Case "1.12 Token with invalid Base64 in header" {
     Assert-Contains -Expected "Failed to decode" -Actual $event.decodeError -Field "DecodeError"
 }
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Category 2: Outbound JWT Capture (DelegatingHandler)
-# ════════════════════════════════════════════════════════════
-Write-Host "`n━━━ Category 2: Outbound JWT Capture ━━━" -ForegroundColor Yellow
+# ============================================================
+Write-Host ""
+Write-Host "--- Category 2: Outbound JWT Capture ---" -ForegroundColor Yellow
 
-Test-Case "2.1 Outbound with ******" {
+Test-Case -Name "2.1 Outbound with ******" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Header @{ alg = "RS256"; typ = "JWT" } -Payload @{ sub = "outbound-user"; iss = "test" }
     Invoke-RestMethod -Uri "$BaseUrl/api/outbound-test?token=$token" -ErrorAction Stop | Out-Null
-    # Wait briefly for async processing
     Start-Sleep -Milliseconds 500
     $events = Get-JwtEvents -BaseUrl $BaseUrl
-    # Should have at least one outbound event
     $outboundEvents = @($events | Where-Object { $_.direction -eq "Outbound" })
     $outboundEvents.Count -gt 0
 }
 
-Test-Case "2.2 Outbound without token (no capture)" {
+Test-Case -Name "2.2 Outbound without token (no capture)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     Invoke-RestMethod -Uri "$BaseUrl/api/outbound-test" -ErrorAction Stop | Out-Null
     Start-Sleep -Milliseconds 500
@@ -203,12 +215,13 @@ Test-Case "2.2 Outbound without token (no capture)" {
     $outboundEvents.Count -eq 0
 }
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Category 3: Claim Redaction
-# ════════════════════════════════════════════════════════════
-Write-Host "`n━━━ Category 3: Claim Redaction ━━━" -ForegroundColor Yellow
+# ============================================================
+Write-Host ""
+Write-Host "--- Category 3: Claim Redaction ---" -ForegroundColor Yellow
 
-Test-Case "3.1 Redacts email claim" {
+Test-Case -Name "3.1 Redacts email claim" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Payload @{ sub = "user1"; email = "test@example.com"; iss = "test" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -217,7 +230,7 @@ Test-Case "3.1 Redacts email claim" {
     Assert-Equal -Expected "user1" -Actual $event.payload.sub -Field "payload.sub"
 }
 
-Test-Case "3.2 Redacts phone_number claim" {
+Test-Case -Name "3.2 Redacts phone_number claim" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Payload @{ sub = "user1"; phone_number = "+1234567890" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -225,7 +238,7 @@ Test-Case "3.2 Redacts phone_number claim" {
     Assert-Equal -Expected "[REDACTED]" -Actual $event.payload.phone_number -Field "payload.phone_number"
 }
 
-Test-Case "3.3 Redacts address claim" {
+Test-Case -Name "3.3 Redacts address claim" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Payload @{ sub = "user1"; address = "123 Main St" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -233,7 +246,7 @@ Test-Case "3.3 Redacts address claim" {
     Assert-Equal -Expected "[REDACTED]" -Actual $event.payload.address -Field "payload.address"
 }
 
-Test-Case "3.4 Redacts birthdate claim" {
+Test-Case -Name "3.4 Redacts birthdate claim" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Payload @{ sub = "user1"; birthdate = "1990-01-01" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -241,7 +254,7 @@ Test-Case "3.4 Redacts birthdate claim" {
     Assert-Equal -Expected "[REDACTED]" -Actual $event.payload.birthdate -Field "payload.birthdate"
 }
 
-Test-Case "3.5 Non-sensitive claims pass through" {
+Test-Case -Name "3.5 Non-sensitive claims pass through" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Payload @{ sub = "user1"; iss = "test"; aud = "api"; role = "admin" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -253,23 +266,23 @@ Test-Case "3.5 Non-sensitive claims pass through" {
     $true
 }
 
-Test-Case "3.7 Case-insensitive redaction (EMAIL)" {
+Test-Case -Name "3.7 Case-insensitive redaction (EMAIL)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Payload @{ sub = "user1"; EMAIL = "test@example.com" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
     $event = Get-LastJwtEvent -BaseUrl $BaseUrl
-    # Check for redacted value on the EMAIL key (case may vary in response)
     $emailValue = $event.payload.EMAIL
     if (-not $emailValue) { $emailValue = $event.payload.email }
     Assert-Equal -Expected "[REDACTED]" -Actual $emailValue -Field "payload.EMAIL"
 }
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Category 4: Claim Diff Tracking
-# ════════════════════════════════════════════════════════════
-Write-Host "`n━━━ Category 4: Claim Diff Tracking ━━━" -ForegroundColor Yellow
+# ============================================================
+Write-Host ""
+Write-Host "--- Category 4: Claim Diff Tracking ---" -ForegroundColor Yellow
 
-Test-Case "4.1 First token for subject (no diffs)" {
+Test-Case -Name "4.1 First token for subject (no diffs)" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $token = New-TestJwt -Payload @{ sub = "diffuser1"; role = "viewer"; iss = "test" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
@@ -277,7 +290,7 @@ Test-Case "4.1 First token for subject (no diffs)" {
     $event.claimDiffs.Count -eq 0
 }
 
-Test-Case "4.2 Second token, modified claim" {
+Test-Case -Name "4.2 Second token, modified claim" -Test {
     $token = New-TestJwt -Payload @{ sub = "diffuser1"; role = "admin"; iss = "test" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
     $event = Get-LastJwtEvent -BaseUrl $BaseUrl
@@ -287,7 +300,7 @@ Test-Case "4.2 Second token, modified claim" {
     $true
 }
 
-Test-Case "4.3 Third token, removed claim" {
+Test-Case -Name "4.3 Third token, removed claim" -Test {
     $token = New-TestJwt -Payload @{ sub = "diffuser1"; iss = "test" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
     $event = Get-LastJwtEvent -BaseUrl $BaseUrl
@@ -297,7 +310,7 @@ Test-Case "4.3 Third token, removed claim" {
     $true
 }
 
-Test-Case "4.4 Fourth token, added claim" {
+Test-Case -Name "4.4 Fourth token, added claim" -Test {
     $token = New-TestJwt -Payload @{ sub = "diffuser1"; iss = "test"; department = "eng" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
     $event = Get-LastJwtEvent -BaseUrl $BaseUrl
@@ -307,26 +320,27 @@ Test-Case "4.4 Fourth token, added claim" {
     $true
 }
 
-Test-Case "4.5 Different subject (independent, no diffs)" {
+Test-Case -Name "4.5 Different subject - independent, no diffs" -Test {
     $token = New-TestJwt -Payload @{ sub = "diffuser2"; role = "viewer" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
     $event = Get-LastJwtEvent -BaseUrl $BaseUrl
     $event.claimDiffs.Count -eq 0
 }
 
-Test-Case "4.6 No subject claim (no diffs)" {
+Test-Case -Name "4.6 No subject claim (no diffs)" -Test {
     $token = New-TestJwt -Payload @{ iss = "test"; role = "viewer" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token | Out-Null
     $event = Get-LastJwtEvent -BaseUrl $BaseUrl
     $event.claimDiffs.Count -eq 0
 }
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Category 5: Ring Buffer Storage
-# ════════════════════════════════════════════════════════════
-Write-Host "`n━━━ Category 5: Ring Buffer Storage ━━━" -ForegroundColor Yellow
+# ============================================================
+Write-Host ""
+Write-Host "--- Category 5: Ring Buffer Storage ---" -ForegroundColor Yellow
 
-Test-Case "5.1 Normal operation under capacity" {
+Test-Case -Name "5.1 Normal operation under capacity" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     for ($i = 1; $i -le 5; $i++) {
         $token = New-TestJwt -Payload @{ sub = "bufferuser$i"; iss = "test" }
@@ -338,7 +352,7 @@ Test-Case "5.1 Normal operation under capacity" {
     $true
 }
 
-Test-Case "5.4 Clear store" {
+Test-Case -Name "5.4 Clear store" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $countResult = Get-JwtEventCount -BaseUrl $BaseUrl
     Assert-Equal -Expected 0 -Actual $countResult.count -Field "count"
@@ -346,7 +360,7 @@ Test-Case "5.4 Clear store" {
     $true
 }
 
-Test-Case "5.5 Clear and re-add" {
+Test-Case -Name "5.5 Clear and re-add" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     for ($i = 1; $i -le 2; $i++) {
         $token = New-TestJwt -Payload @{ sub = "readduser$i"; iss = "test" }
@@ -358,12 +372,13 @@ Test-Case "5.5 Clear and re-add" {
     $true
 }
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Category 8: Dashboard Integration (ILensDiagnosticsContributor)
-# ════════════════════════════════════════════════════════════
-Write-Host "`n━━━ Category 8: Diagnostics ━━━" -ForegroundColor Yellow
+# ============================================================
+Write-Host ""
+Write-Host "--- Category 8: Diagnostics ---" -ForegroundColor Yellow
 
-Test-Case "8.1 Metadata check" {
+Test-Case -Name "8.1 Metadata check" -Test {
     $diag = Invoke-RestMethod -Uri "$BaseUrl/api/jwt/diagnostics" -ErrorAction Stop
     Assert-Equal -Expected "JwtLens" -Actual $diag.metadata.packageId -Field "PackageId"
     Assert-Equal -Expected "JWT Lens" -Actual $diag.metadata.displayName -Field "DisplayName"
@@ -371,22 +386,21 @@ Test-Case "8.1 Metadata check" {
     $true
 }
 
-Test-Case "8.2 Snapshot before any events" {
+Test-Case -Name "8.2 Snapshot before any events" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
     $diag = Invoke-RestMethod -Uri "$BaseUrl/api/jwt/diagnostics" -ErrorAction Stop
     $null -eq $diag.snapshot
 }
 
-Test-Case "8.3 Snapshot after events" {
+Test-Case -Name "8.3 Snapshot after events" -Test {
     Clear-JwtEvents -BaseUrl $BaseUrl
-    # Send expired token
     $expPast = Get-UnixTimestamp -OffsetMinutes -10
     $token1 = New-TestJwt -Payload @{ sub = "diaguser1"; exp = $expPast }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token1 | Out-Null
-    # Send token with weak alg
+
     $token2 = New-TestJwt -Header @{ alg = "HS256" } -Payload @{ sub = "diaguser2" }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token2 | Out-Null
-    # Send normal token
+
     $expFuture = Get-UnixTimestamp -OffsetMinutes 60
     $token3 = New-TestJwt -Payload @{ sub = "diaguser3"; exp = $expFuture }
     Send-JwtRequest -BaseUrl $BaseUrl -Token $token3 | Out-Null
@@ -398,9 +412,17 @@ Test-Case "8.3 Snapshot after events" {
     $true
 }
 
-Test-Case "8.4 Snapshot data keys" {
+Test-Case -Name "8.4 Snapshot data keys" -Test {
     $diag = Invoke-RestMethod -Uri "$BaseUrl/api/jwt/diagnostics" -ErrorAction Stop
-    $keys = @("StoredEvents", "ExpiredTokens", "ExpiringSoonTokens", "TokensWithAlgorithmWarnings", "LatestTokenAlgorithm", "LatestTokenSubject", "LatestTokenDirection")
+    $keys = @(
+        "StoredEvents",
+        "ExpiredTokens",
+        "ExpiringSoonTokens",
+        "TokensWithAlgorithmWarnings",
+        "LatestTokenAlgorithm",
+        "LatestTokenSubject",
+        "LatestTokenDirection"
+    )
     foreach ($key in $keys) {
         if ($null -eq $diag.snapshot.data.$key) {
             throw "Missing key: $key"
@@ -409,10 +431,17 @@ Test-Case "8.4 Snapshot data keys" {
     $true
 }
 
-# ════════════════════════════════════════════════════════════
+# ============================================================
 # Results
-# ════════════════════════════════════════════════════════════
-Write-Host "`n════════════════════════════════════════"
-Write-Host "Results: $($script:PassCount) passed, $($script:FailCount) failed" -ForegroundColor $(if ($script:FailCount -gt 0) { "Red" } else { "Green" })
-Write-Host "════════════════════════════════════════"
-exit ($script:FailCount -gt 0 ? 1 : 0)
+# ============================================================
+Write-Host ""
+Write-Host "========================================"
+if ($script:FailCount -gt 0) {
+    Write-Host "Results: $($script:PassCount) passed, $($script:FailCount) failed" -ForegroundColor Red
+}
+else {
+    Write-Host "Results: $($script:PassCount) passed, $($script:FailCount) failed" -ForegroundColor Green
+}
+Write-Host "========================================"
+
+if ($script:FailCount -gt 0) { exit 1 } else { exit 0 }
