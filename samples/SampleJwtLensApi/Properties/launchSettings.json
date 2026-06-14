@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "SampleJwtLensApi": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5050"
+    }
+  }
+}
