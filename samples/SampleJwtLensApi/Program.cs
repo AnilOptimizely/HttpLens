@@ -3,8 +3,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using JwtLens.Analysis;
 using JwtLens.Extensions;
-using JwtLens.Middleware;
 using JwtLens.Storage;
+using Lens.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +24,7 @@ app.UseJwtLens();
 // Basic test endpoint
 app.MapGet("/api/test", () => Results.Ok(new { message = "OK", timestamp = DateTimeOffset.UtcNow }));
 
-// Outbound test endpoint - optionally sends an outbound request with a ******
+// Outbound test endpoint - optionally sends an outbound request with a JWT
 app.MapGet("/api/outbound-test", async (string? token, IHttpClientFactory clientFactory) =>
 {
     var client = clientFactory.CreateClient("outbound");
@@ -48,7 +48,7 @@ app.MapGet("/api/outbound-test", async (string? token, IHttpClientFactory client
 });
 
 // JWT Events API
-app.MapGet("/api/jwt/events", (JwtEventStore store) =>
+app.MapGet("/api/jwt/events", (IJwtEventStore store) =>
 {
     var events = store.GetAll();
     return Results.Json(events, new JsonSerializerOptions
@@ -58,9 +58,10 @@ app.MapGet("/api/jwt/events", (JwtEventStore store) =>
     });
 });
 
-app.MapGet("/api/jwt/events/last", (JwtEventStore store) =>
+app.MapGet("/api/jwt/events/last", (IJwtEventStore store) =>
 {
-    var last = store.GetLast();
+    var events = store.GetAll();
+    var last = events.Count > 0 ? events[^1] : null;
     if (last == null) return Results.NotFound();
     return Results.Json(last, new JsonSerializerOptions
     {
@@ -69,12 +70,12 @@ app.MapGet("/api/jwt/events/last", (JwtEventStore store) =>
     });
 });
 
-app.MapGet("/api/jwt/events/count", (JwtEventStore store) =>
+app.MapGet("/api/jwt/events/count", (IJwtEventStore store) =>
 {
     return Results.Ok(new { count = store.Count, totalCaptured = store.TotalCaptured });
 });
 
-app.MapDelete("/api/jwt/events", (JwtEventStore store, ClaimDiffTracker diffTracker) =>
+app.MapDelete("/api/jwt/events", (IJwtEventStore store, ClaimDiffTracker diffTracker) =>
 {
     store.Clear();
     diffTracker.Clear();
@@ -82,7 +83,7 @@ app.MapDelete("/api/jwt/events", (JwtEventStore store, ClaimDiffTracker diffTrac
 });
 
 // Diagnostics endpoint
-app.MapGet("/api/jwt/diagnostics", (JwtLensDiagnosticsContributor contributor) =>
+app.MapGet("/api/jwt/diagnostics", (ILensDiagnosticsContributor contributor) =>
 {
     var snapshot = contributor.GetLatestSnapshot();
     return Results.Json(new
