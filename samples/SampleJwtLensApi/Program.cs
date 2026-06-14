@@ -5,6 +5,7 @@ using JwtLens.Analysis;
 using JwtLens.Extensions;
 using JwtLens.Storage;
 using Lens.Abstractions;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,7 +76,7 @@ app.MapGet("/api/jwt/events/count", (IJwtEventStore store) =>
     return Results.Ok(new { count = store.Count, totalCaptured = store.TotalCaptured });
 });
 
-app.MapDelete("/api/jwt/events", (IJwtEventStore store, ClaimDiffTracker diffTracker) =>
+app.MapDelete("/api/jwt/events", ([FromServices] IJwtEventStore store, [FromServices] ClaimDiffTracker diffTracker) =>
 {
     store.Clear();
     diffTracker.Clear();
