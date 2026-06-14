@@ -5,16 +5,16 @@
     Covers Categories 1 (Inbound), 2 (Outbound), 3 (Redaction), 4 (Claim Diff), 5 (Ring Buffer), 8 (Diagnostics).
 
 .PARAMETER BaseUrl
-    Base URL of the running SampleJwtLensApi instance. Default: http://localhost:5000
+    Base URL of the running SampleJwtLensApi instance. Default: http://localhost:5050
 
 .PARAMETER VerboseOutput
     Show additional debug output.
 
 .EXAMPLE
-    ./test-jwtlens.ps1 -BaseUrl "http://localhost:5000"
+    ./test-jwtlens.ps1 -BaseUrl "http://localhost:5050"
 #>
 param(
-    [string]$BaseUrl = "http://localhost:5000",
+    [string]$BaseUrl = "http://localhost:5050",
     [switch]$VerboseOutput
 )
 
