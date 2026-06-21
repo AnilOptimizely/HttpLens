@@ -39,29 +39,6 @@ public sealed class ClaimDiffTracker
         _lastPayloadBySubject.Clear();
     }
 
-    /// <summary>
-    /// Computes claim diffs from a JwtEvent by extracting the subject and payload.
-    /// Used by the legacy middleware capture pipeline.
-    /// </summary>
-    /// <param name="evt">The JWT event containing decoded payload claims.</param>
-    /// <returns>A list of claim diffs, or an empty list if this is the first token for the subject.</returns>
-    public List<ClaimDiff> ComputeDiffs(Models.JwtEvent evt)
-    {
-        if (!evt.DecodedSuccessfully || evt.Payload is null)
-            return [];
-
-        evt.Payload.TryGetValue("sub", out var subObj);
-        var subject = subObj?.ToString();
-
-        var stringPayload = new Dictionary<string, string>();
-        foreach (var kvp in evt.Payload)
-        {
-            stringPayload[kvp.Key] = kvp.Value?.ToString() ?? string.Empty;
-        }
-
-        return TrackAndDiff(subject, stringPayload);
-    }
-
     internal static List<ClaimDiff> ComputeDiff(
         Dictionary<string, string> previous,
         Dictionary<string, string> current)

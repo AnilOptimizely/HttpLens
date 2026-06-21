@@ -1,5 +1,7 @@
 using JwtLens.Middleware;
+using JwtLens.Storage;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JwtLens.Extensions;
 
@@ -15,6 +17,11 @@ public static class ApplicationBuilderExtensions
     /// <param name="app">The application builder.</param>
     public static IApplicationBuilder UseJwtLens(this IApplicationBuilder app)
     {
+        if (app.ApplicationServices.GetService<IJwtEventStore>() is null)
+        {
+            return app;
+        }
+
         return app.UseMiddleware<JwtLensMiddleware>();
     }
 }

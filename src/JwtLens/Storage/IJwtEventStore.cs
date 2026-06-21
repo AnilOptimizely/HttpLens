@@ -10,7 +10,7 @@ public interface IJwtEventStore
     /// <summary>Total number of events currently held.</summary>
     int Count { get; }
 
-    /// <summary>Total number of events captured since startup (including evicted ones).</summary>
+    /// <summary>Total number of events captured since the last <see cref="Clear"/> call, including evicted ones.</summary>
     long TotalCaptured { get; }
 
     /// <summary>Adds a captured JWT event to the store.</summary>
