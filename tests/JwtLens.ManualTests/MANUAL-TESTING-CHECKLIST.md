@@ -972,15 +972,16 @@ $diag.snapshot | ConvertTo-Json -Depth 3
 ```
 
 **✅ Pass criteria**:
-- [ ] Snapshot is returned (not null)
-- [ ] Event count in snapshot data is `0`
+- [ ] `$diag.snapshot` is `null` (no events in store → no snapshot produced)
 
 ---
 
 ### Test 8.3 — Snapshot after capturing events
 
 ```powershell
-. ./tests/JwtLens.ManualTests/helpers/jwt-helpers.ps1
+# Clear first, then capture two events
+Invoke-RestMethod -Method Delete -Uri "http://localhost:5000/api/jwt/events"
+. ./helpers/jwt-helpers.ps1
 $token = New-TestJwt -Header @{ alg = "RS256"; typ = "JWT" } -Payload @{ sub = "diaguser" }
 Invoke-RestMethod -Uri "http://localhost:5000/api/test" -Headers @{ "Authorization" = "******" }
 $diag = Invoke-RestMethod -Uri "http://localhost:5000/api/jwt/diagnostics"
@@ -988,8 +989,8 @@ $diag.snapshot | ConvertTo-Json -Depth 3
 ```
 
 **✅ Pass criteria**:
-- [ ] Snapshot reflects the captured event(s)
-- [ ] Event count in snapshot is greater than `0`
+- [ ] `$diag.snapshot` is **not null**
+- [ ] `$diag.snapshot.eventCount` is greater than `0`
 
 ---
 
