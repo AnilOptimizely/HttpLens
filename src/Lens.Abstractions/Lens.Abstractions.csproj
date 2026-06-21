@@ -10,7 +10,7 @@
     <Copyright>Anil Patel 2026</Copyright>
     <RepositoryUrl>https://github.com/AnilOptimizely/HttpLens</RepositoryUrl>
     <PackageProjectUrl>https://github.com/AnilOptimizely/HttpLens/tree/main/src/Lens.Abstractions</PackageProjectUrl>
-    <Version>0.1.0-preview.1</Version>
+    <Version>0.1.0</Version>
     <RepositoryType>git</RepositoryType>
     <Title>Lens.Abstractions</Title>
   </PropertyGroup>
