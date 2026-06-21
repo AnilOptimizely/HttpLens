@@ -4,13 +4,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>JwtLens</PackageId>
     <Description>JWT inspection and diagnostics middleware for ASP.NET Core. Part of the Lens family for .NET.</Description>
+    <PackageTags>jwt;diagnostics;aspnetcore;middleware;debugging;lens;token;authentication</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Authors>Anil Patel</Authors>
     <Copyright>Anil Patel 2026</Copyright>
     <RepositoryUrl>https://github.com/AnilOptimizely/HttpLens</RepositoryUrl>
     <PackageProjectUrl>https://github.com/AnilOptimizely/HttpLens/tree/main/src/JwtLens</PackageProjectUrl>
-    <Version>0.1.0-preview.1</Version>
+    <Version>0.1.0</Version>
     <RepositoryType>git</RepositoryType>
     <Title>JwtLens</Title>
   </PropertyGroup>
@@ -19,5 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Lens.Abstractions/Lens.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../README.JwtLens.md" Pack="true" PackagePath="/README.md" />
   </ItemGroup>
 </Project>
