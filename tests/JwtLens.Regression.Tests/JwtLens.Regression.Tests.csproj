@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HttpLens.Core\HttpLens.Core.csproj" />
+    <ProjectReference Include="..\..\src\HttpLens.Dashboard\HttpLens.Dashboard.csproj" />
+    <ProjectReference Include="..\..\src\JwtLens\JwtLens.csproj" />
+    <ProjectReference Include="..\..\src\Lens.Abstractions\Lens.Abstractions.csproj" />
+  </ItemGroup>
+</Project>
