@@ -14,26 +14,27 @@
 
 ## Phase 3: HttpLens compatibility suite
 - [ ] 3.1 Gate split: define the permanent compatibility suite scope in HttpLens.
-- [ ] 3.2 Gate split: recreate combined registration coverage against released JwtLens packages.
-- [ ] 3.3 Gate split: recreate shared handler pipeline coverage against released JwtLens packages.
-- [ ] 3.4 Gate split: recreate traffic capture compatibility coverage with JwtLens enabled.
-- [ ] 3.5 Gate split: recreate independent-store clearing coverage.
-- [ ] 3.6 Gate split: recreate dashboard traffic API compatibility coverage.
-- [ ] 3.7 Gate split: retire or replace the current `ProjectReference`-based `JwtLens.Regression.Tests` approach.
+- [ ] 3.2 Gate split: make HttpLens the clear owner of the full compatibility suite.
+- [ ] 3.3 Gate split: recreate combined registration coverage against CI-built JwtLens packages for PR validation.
+- [ ] 3.4 Gate split: recreate shared handler pipeline coverage against CI-built JwtLens packages for PR validation.
+- [ ] 3.5 Gate split: recreate traffic capture compatibility coverage with JwtLens enabled.
+- [ ] 3.6 Gate split: recreate independent-store clearing coverage.
+- [ ] 3.7 Gate split: recreate dashboard traffic API compatibility coverage.
+- [ ] 3.8 Gate split: retire or replace the current `ProjectReference`-based `JwtLens.Regression.Tests` approach.
 
 ## Phase 4: New repository scaffolding, CI, and release
 - [ ] 4.1 Gate split: create a standalone JwtLens solution file.
 - [ ] 4.2 Gate split: create standalone `Directory.Build.props` with corrected metadata URLs.
 - [ ] 4.3 Gate split: create standalone `Directory.Packages.props`.
 - [ ] 4.4 Gate split: create standalone `nuget.config`.
-- [ ] 4.5 Gate split: decide whether to add `global.json` for SDK pinning.
+- [ ] 4.5 Gate split: add `global.json` to pin the SDK in the new JwtLens repo.
 - [ ] 4.6 Gate split: create JwtLens-only CI with no Node/dashboard build step.
 - [ ] 4.7 Gate split: create JwtLens-specific release automation and tagging strategy.
 - [ ] 4.8 Gate split: confirm NuGet ownership continuity for `PackageId=JwtLens`.
 
 ## Phase 5: History split
 - [ ] 5.1 Gate split: confirm the final `git filter-repo` path list.
-- [ ] 5.2 Gate split: decide whether to include `/home/runner/work/HttpLens/HttpLens/docs/issues/design-jwtlens-v0.1.md` in extracted history.
+- [ ] 5.2 Gate split: include `/home/runner/work/HttpLens/HttpLens/docs/issues/design-jwtlens-v0.1.md` in extracted history.
 - [ ] 5.3 Gate split: execute the history-preserving split for `src/JwtLens` and `tests/JwtLens.Tests`.
 
 ## Phase 6: Post-split fixes in the new repo

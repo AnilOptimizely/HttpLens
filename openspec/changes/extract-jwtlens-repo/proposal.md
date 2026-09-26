@@ -31,11 +31,13 @@ This proposal defines the planning work needed to split `JwtLens` cleanly while 
 
 ### Phase 3: replace source-coupled integration coverage
 - retire the current `ProjectReference`-based `JwtLens.Regression.Tests` approach
-- keep a small permanent compatibility suite in `HttpLens` that runs against released `JwtLens` packages
+- keep the full permanent compatibility suite in `HttpLens`, running against CI-built `JwtLens` packages for PR validation and released packages for ongoing compatibility
 - cover coexistence, handler pipeline, traffic capture, independent stores, and dashboard traffic APIs
+- defer JwtLens-side smoke tests to a later follow-up rather than duplicating the full compatibility suite
 
 ### Phase 4: scaffold the new JwtLens repository
 - create standalone solution and repository-level build configuration
+- pin the SDK in `global.json`
 - create JwtLens-only CI and release workflows with no Node/dashboard build step
 - create a minimal sample that consumes published packages instead of using monorepo project references
 
@@ -76,4 +78,5 @@ This proposal defines the planning work needed to split `JwtLens` cleanly while 
 - version drift between `JwtLens` and `Lens.Abstractions`
 - slower cross-repo changes when a feature spans shared contracts and JwtLens behavior
 - the dashboard contributor integration still existing as future architecture rather than current production behavior (`/home/runner/work/HttpLens/HttpLens/docs/lens-family-architecture.md:132-141`, `/home/runner/work/HttpLens/HttpLens/docs/lens-family-architecture.md:208-217`)
+- split responsibility between HttpLens compatibility coverage and later JwtLens smoke coverage may still require coordination
 - incomplete repo scaffolding leading to a split that preserves code but not packaging or release quality

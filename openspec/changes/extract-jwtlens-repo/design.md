@@ -42,7 +42,7 @@ The current state already has a workable code boundary. The target state adds th
 | Area | Current state | Target state |
 |---|---|---|
 | Code | `JwtLens` references `Lens.Abstractions` by project reference | `JwtLens` consumes published `Lens.Abstractions` via `PackageReference` |
-| Build | Shared monorepo solution and root props/packages | Standalone JwtLens repo with its own solution and root config |
+| Build | Shared monorepo solution and root props/packages | Standalone JwtLens repo with its own solution, root config, and pinned SDK via `global.json` |
 | CI | Monorepo CI always builds dashboard UI and full solution | JwtLens-only CI with no Node/dashboard step |
 | Release | Monorepo `v*` tags push all `.nupkg` files | JwtLens-specific tags/releases push only JwtLens artifacts |
 | Tests | Cross-package compatibility lives in source-coupled regression project | HttpLens keeps a package-based compatibility suite against released JwtLens |
@@ -63,15 +63,17 @@ The current state already has a workable code boundary. The target state adds th
 - **Give `Lens.Abstractions` its own repo now**: rejected because it adds more operational overhead before multiple split packages justify it.
 
 ### Decision 2: HttpLens keeps the permanent compatibility suite
-**Selected:** Replace source-coupled regression coverage with a smaller package-based compatibility suite in `HttpLens`.
+**Selected:** Replace source-coupled regression coverage with a package-based compatibility suite owned by `HttpLens`, using CI-built JwtLens packages for pull request validation.
 
 **Why selected:**
 - The main integration risk is preserving HttpLens behavior when JwtLens is installed.
 - Existing regression tests already validate the right compatibility cases.
+- `HttpLens` remains the primary owner of cross-repo compatibility assertions.
 
 **Rejected alternatives:**
 - **Move the entire regression suite into the new JwtLens repo**: rejected because the behaviors being protected are mostly HttpLens-facing.
 - **Drop compatibility testing entirely**: rejected because it would remove the only automated cross-repo coexistence signal.
+- **Rely only on released package versions in PR validation**: rejected because it would delay integration feedback until after publishing.
 
 ### Decision 3: create a new smaller sample instead of moving `SampleJwtLensApi`
 **Selected:** Leave `/home/runner/work/HttpLens/HttpLens/samples/SampleJwtLensApi` out of the history split and create a fresh, smaller sample in the new repo.
@@ -105,14 +107,33 @@ The current state already has a workable code boundary. The target state adds th
 - **Copy shared docs into JwtLens**: rejected because duplicated architecture documents would drift.
 - **Move all family docs to JwtLens**: rejected because JwtLens does not own the whole Lens family.
 
+### Decision 6: pin the SDK in the new JwtLens repo
+**Selected:** Add `global.json` to the standalone JwtLens repository.
+
+**Why selected:**
+- It gives the new repo reproducible local and CI builds during the split and early standalone releases.
+- It reduces SDK drift while the new repo scaffolding is being stabilized.
+
+**Rejected alternatives:**
+- **Rely on the latest supported SDK**: rejected because it is simpler but increases the chance of CI/local mismatches during the transition.
+
+### Decision 7: add JwtLens-side smoke tests later, but not as the primary compatibility suite
+**Selected:** Keep the full compatibility suite in `HttpLens` and add only a small JwtLens-side smoke suite later if needed.
+
+**Why selected:**
+- It keeps one primary owner for compatibility behavior.
+- It leaves room for lightweight downstream verification from the JwtLens side without duplicating the full integration suite.
+
+**Rejected alternatives:**
+- **Keep all compatibility coverage only in HttpLens forever**: rejected because future production contributor integration may justify a minimal JwtLens-side signal.
+- **Duplicate the full compatibility suite in both repos**: rejected because it adds unnecessary test surface and maintenance cost.
+
 ## History-preserving split plan
 
 ### `git filter-repo` path list
 Required paths:
 - `src/JwtLens`
 - `tests/JwtLens.Tests`
-
-Optional path:
 - `docs/issues/design-jwtlens-v0.1.md`
 
 Excluded paths:
@@ -123,7 +144,7 @@ Excluded paths:
 ### Inclusion rationale
 - `src/JwtLens` is the production package being extracted.
 - `tests/JwtLens.Tests` is the self-contained unit test project that belongs with the package.
-- `docs/issues/design-jwtlens-v0.1.md` may be included if preserving package-local design history is desirable.
+- `docs/issues/design-jwtlens-v0.1.md` is included to preserve JwtLens-specific design history alongside the extracted package.
 
 ### Exclusion rationale
 - `samples/SampleJwtLensApi` is excluded because the new repo will intentionally replace it with a smaller package-consumption sample.
@@ -143,9 +164,9 @@ This preserves the current preview line while removing source-level release coup
 
 1. stabilize and publish `Lens.Abstractions`
 2. switch `JwtLens` to package consumption of `Lens.Abstractions`
-3. build the package-based compatibility suite in `HttpLens`
+3. build the package-based compatibility suite in `HttpLens` using CI-built JwtLens packages for PR validation
 4. clean up packaging and docs (README, version metadata, URLs)
-5. create the new repository scaffolding
+5. create the new repository scaffolding, including `global.json`
 6. split history using the approved path list
 7. fix up both repositories after the split
 8. cut the first standalone JwtLens preview release
@@ -171,7 +192,4 @@ This preserves the current preview line while removing source-level release coup
 
 ## Open questions
 
-- Should the optional design doc history (`docs/issues/design-jwtlens-v0.1.md`) be retained in the new repo, or referenced only from the monorepo?
-- Should the new JwtLens repo pin an SDK with `global.json`, or inherit the latest supported SDK policy?
-- Should the remaining HttpLens repo convert compatibility tests to consume a fixed JwtLens version, a floating preview line, or a package built in CI for pull requests?
-- When the dashboard eventually consumes contributor data in production, should compatibility coverage remain only in HttpLens or be mirrored with JwtLens-side smoke tests?
+- If HttpLens.Dashboard begins consuming contributor data in production, what is the threshold for adding JwtLens-side smoke tests?
