@@ -150,6 +150,25 @@ This preserves the current preview line while removing source-level release coup
 7. fix up both repositories after the split
 8. cut the first standalone JwtLens preview release
 
+## Constraints
+
+### Scope and simplicity
+- Keep it simple (KISS). When two approaches both work, choose the simpler one.
+- Do only what the requirements ask for. Do not add features, refactors, abstractions, or extra improvements beyond them.
+- Do not overengineer. Each implementation step should use the smallest change that satisfies the requirement.
+- Keep code to the minimum needed to solve the problem. Avoid speculative extension points, unused options, and extra layers.
+- Avoid AI-generated boilerplate or sprawl in both code and artifacts. Keep implementation and documentation concise.
+
+### SOLID applied with judgment
+- Apply SOLID only where it clearly improves the result.
+- Keep single responsibility boundaries clear so each type does one job.
+- Depend on the specific interface required rather than broad catch-all abstractions.
+- Do not introduce interfaces or abstractions solely to satisfy SOLID. When SOLID and KISS conflict, KISS wins.
+
+### Ask first
+- If anything is unclear, ask before changing code.
+- Implementation work must not begin until open questions are answered.
+
 ## Open questions
 
 - Should the optional design doc history (`docs/issues/design-jwtlens-v0.1.md`) be retained in the new repo, or referenced only from the monorepo?

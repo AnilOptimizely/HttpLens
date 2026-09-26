@@ -58,3 +58,12 @@
 - [ ] 9.1 Follow-up: add JwtLens-side smoke tests against released HttpLens packages.
 - [ ] 9.2 Follow-up: reconsider whether `Lens.Abstractions` eventually needs its own repository.
 - [ ] 9.3 Follow-up: remove duplicated `TestJwtHelper` helpers if test structure changes justify it.
+
+## Review checklist
+- [ ] Does the implementation match the task description and any PR feedback, with nothing extra added?
+- [ ] Are the changes as small as possible for what they need to do?
+- [ ] Do matching tests exist for every behavior that was changed or added?
+- [ ] Are the XML doc comments accurate and spelled correctly?
+- [ ] Is every comment needed? Remove comments that just repeat what the code says.
+- [ ] If any SQL or data-access code is touched, can it be simplified or improved? (There is no SQL in JwtLens today, so this should usually be N/A.)
+- [ ] Were any unnecessary interfaces, abstractions or boilerplate added? If so, remove them.
