@@ -43,6 +43,9 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet }}
 
+      - name: Pack JwtLens
+        run: dotnet pack src/JwtLens/JwtLens.csproj -c Release -o ./packages
+
       - name: Restore
         run: dotnet restore
 

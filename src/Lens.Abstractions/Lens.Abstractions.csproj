@@ -3,6 +3,7 @@
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Lens.Abstractions</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Shared abstractions for the Lens family of .NET diagnostics packages</Description>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -19,5 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Lens.Abstractions.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../README.Lens.Abstractions.md" Pack="true" PackagePath="/README.md" />
   </ItemGroup>
 </Project>
