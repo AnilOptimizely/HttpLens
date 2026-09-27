@@ -1,9 +1,9 @@
 # Tasks: Extract JwtLens into its own repository
 
 ## Phase 1: Lens.Abstractions publication
-- [ ] 1.1 Gate split: finalize `Lens.Abstractions` package metadata and publication process. Blocked: manual release preparation outside this repository.
+- [x] 1.1 Gate split: finalize `Lens.Abstractions` package metadata and publication process.
 - [ ] 1.2 Gate split: publish a supported `Lens.Abstractions` package version for downstream consumption. Blocked: NuGet publication is a manual maintainer step.
-- [ ] 1.3 Gate split: define the supported versioning and compatibility policy between `Lens.Abstractions` and `JwtLens`. Blocked: requires maintainer release policy decision.
+- [x] 1.3 Gate split: define the supported versioning and compatibility policy between `Lens.Abstractions` and `JwtLens`.
 
 ## Phase 2: Packaging and metadata cleanup
 - [x] 2.1 Gate release: add a dedicated JwtLens README suitable for NuGet packaging.
