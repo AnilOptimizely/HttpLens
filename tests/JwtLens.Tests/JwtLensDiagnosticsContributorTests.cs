@@ -1,3 +1,4 @@
+using System.Reflection;
 using Xunit;
 using JwtLens.Storage;
 using Lens.Abstractions;
@@ -18,6 +19,25 @@ public sealed class JwtLensDiagnosticsContributorTests
         Assert.Equal("JwtLens", contributor.Metadata.PackageId);
         Assert.Equal("JWT Lens", contributor.Metadata.DisplayName);
         Assert.NotNull(contributor.Metadata.Description);
+    }
+
+    [Fact]
+    public void Metadata_Version_MatchesAssemblyInformationalVersion()
+    {
+        var store = new Mock<IJwtEventStore>();
+        var contributor = new JwtLensDiagnosticsContributor(store.Object);
+        var informationalVersion = typeof(JwtLensDiagnosticsContributor).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion;
+
+        Assert.NotNull(informationalVersion);
+
+        var expectedVersion = informationalVersion!;
+        var commitSeparatorIndex = expectedVersion.IndexOf('+');
+        if (commitSeparatorIndex >= 0)
+            expectedVersion = expectedVersion[..commitSeparatorIndex];
+
+        Assert.Equal(expectedVersion, contributor.Metadata.Version);
     }
 
     [Fact]

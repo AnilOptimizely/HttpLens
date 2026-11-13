@@ -1,3 +1,4 @@
+using System.Reflection;
 using JwtLens.Storage;
 using Lens.Abstractions;
 
@@ -8,6 +9,7 @@ namespace JwtLens;
 /// </summary>
 public sealed class JwtLensDiagnosticsContributor : ILensDiagnosticsContributor
 {
+    private static readonly string? PackageVersion = GetPackageVersion();
     private readonly IJwtEventStore _store;
 
     /// <summary>
@@ -22,7 +24,7 @@ public sealed class JwtLensDiagnosticsContributor : ILensDiagnosticsContributor
     public LensPackageMetadata Metadata { get; } = new("JwtLens", "JWT Lens")
     {
         Description = "Decodes, analyzes, and explains JWTs flowing through your pipeline.",
-        Version = "0.1.0-preview.1"
+        Version = PackageVersion
     };
 
     /// <inheritdoc />
@@ -51,5 +53,20 @@ public sealed class JwtLensDiagnosticsContributor : ILensDiagnosticsContributor
                 ["LatestTokenDirection"] = latest.Direction.ToString()
             }
         };
+    }
+
+    private static string? GetPackageVersion()
+    {
+        var informationalVersion = typeof(JwtLensDiagnosticsContributor).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion;
+
+        if (string.IsNullOrEmpty(informationalVersion))
+            return null;
+
+        var commitSeparatorIndex = informationalVersion.IndexOf('+');
+        return commitSeparatorIndex >= 0
+            ? informationalVersion[..commitSeparatorIndex]
+            : informationalVersion;
     }
 }
