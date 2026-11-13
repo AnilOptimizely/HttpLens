@@ -2,7 +2,7 @@
 
 ## Phase 1: Lens.Abstractions publication
 - [x] 1.1 Gate split: finalize `Lens.Abstractions` package metadata and publication process.
-- [ ] 1.2 Gate split: publish a supported `Lens.Abstractions` package version for downstream consumption. Blocked: NuGet publication is a manual maintainer step.
+- [ ] 1.2 Gate split: publish `Lens.Abstractions` 0.1.0 for downstream consumption (also satisfies the dependency of the already-published `JwtLens` 0.1.0). Blocked: NuGet publication is a manual maintainer step.
 - [x] 1.3 Gate split: define the supported versioning and compatibility policy between `Lens.Abstractions` and `JwtLens`.
 
 ## Phase 2: Packaging and metadata cleanup

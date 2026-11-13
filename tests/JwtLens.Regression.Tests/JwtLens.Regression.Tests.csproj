@@ -4,7 +4,6 @@
     <IsPackable>false</IsPackable>
     <UsePackagedJwtLens Condition="'$(UsePackagedJwtLens)' == '' and '$(CI)' == 'true'">true</UsePackagedJwtLens>
     <UsePackagedJwtLens Condition="'$(UsePackagedJwtLens)' == ''">false</UsePackagedJwtLens>
-    <RestoreAdditionalProjectSources Condition="'$(UsePackagedJwtLens)' == 'true'">$(RestoreAdditionalProjectSources);$(MSBuildThisFileDirectory)../../packages</RestoreAdditionalProjectSources>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

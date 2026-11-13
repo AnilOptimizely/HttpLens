@@ -11,7 +11,7 @@
     <Copyright>Anil Patel 2026</Copyright>
     <RepositoryUrl>https://github.com/AnilOptimizely/JwtLens</RepositoryUrl>
     <PackageProjectUrl>https://github.com/AnilOptimizely/JwtLens</PackageProjectUrl>
-    <Version>0.1.0-preview.1</Version>
+    <Version>0.2.0-preview.1</Version>
     <RepositoryType>git</RepositoryType>
     <Title>JwtLens</Title>
   </PropertyGroup>

@@ -39,5 +39,6 @@ The naming direction is **The Lens family for .NET**: a cohesive set of focused 
 - Publish `Lens.Abstractions` through the existing tag-driven workflow in `/home/runner/work/HttpLens/HttpLens/.github/workflows/release.yml`.
 - Treat `Lens.Abstractions` as a shared dependency package, not the main end-user entry point; user-facing applications should typically install packages such as `HttpLens` or `JwtLens` instead.
 - Before JwtLens is extracted into its own repository, it must consume a published `Lens.Abstractions` package rather than a source `ProjectReference`.
-- During the planned `0.1.x-preview` extraction phase, `JwtLens` and `Lens.Abstractions` should stay on compatible preview lines, starting with `0.1.0-preview.1`.
+- `JwtLens` 0.1.0 is already published on NuGet and depends on `Lens.Abstractions` >= 0.1.0, so `Lens.Abstractions` is published as `0.1.0` (its contract is unchanged from the source `JwtLens` 0.1.0 was built against). A `0.1.0-preview.1` version would sort below `0.1.0` and not satisfy that dependency.
+- The first standalone `JwtLens` release continues the version line above the published `0.1.0` as `0.2.0-preview.1`, depending on `Lens.Abstractions` 0.1.0.
 - Additive contract changes in `Lens.Abstractions` may ship within the current major version, but breaking contract changes require a new major version and coordinated downstream package updates.
