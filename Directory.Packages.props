@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <JwtLensVersion Condition="'$(JwtLensVersion)' == ''">0.1.0</JwtLensVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.SignalR" Version="1.2.9" />
@@ -21,7 +22,9 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageVersion Include="JwtLens" Version="0.2.0-preview.1" />
+    <!-- JwtLens validated by JwtLens.Regression.Tests. Bump after each JwtLens release, or pass
+         -p:JwtLensVersion=<version> with the .nupkg in ./packages to test an unreleased build. -->
+    <PackageVersion Include="JwtLens" Version="$(JwtLensVersion)" />
     <PackageVersion Include="xunit" Version="2.9.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />

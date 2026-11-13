@@ -6,7 +6,8 @@ obj/
 .vs/
 *.nupkg
 *.snupkg
-packages/
+packages/*
+!packages/.gitkeep
 TestResults/
 
 # Node
