@@ -175,20 +175,22 @@ src/
 ├── HttpLens/                    # Meta-package (existing)
 ├── HttpLens.Core/               # HTTP interception (existing)
 ├── HttpLens.Dashboard/          # Dashboard UI (existing)
-├── Lens.Abstractions/           # NEW: shared contracts
-│   ├── IRedactor.cs
-│   ├── ILensDiagnosticsContributor.cs
-│   ├── LensDiagnosticsSnapshot.cs
-│   ├── LensPackageMetadata.cs
-│   └── EnvironmentGuard.cs
-└── JwtLens/                     # FUTURE: first domain package
+└── Lens.Abstractions/           # NEW: shared contracts
+    ├── IRedactor.cs
+    ├── ILensDiagnosticsContributor.cs
+    ├── LensDiagnosticsSnapshot.cs
+    ├── LensPackageMetadata.cs
+    └── EnvironmentGuard.cs
 
 tests/
 ├── HttpLens.Core.Tests/         # (existing)
 ├── HttpLens.Dashboard.Tests/    # (existing)
 ├── HttpLens.EndToEnd.Tests/     # (existing)
+├── JwtLens.Regression.Tests/    # HttpLens + released JwtLens compatibility suite
 └── Lens.Abstractions.Tests/     # NEW: shared abstractions tests
 ```
+
+Domain packages live in their own repositories and consume `Lens.Abstractions` from NuGet. `JwtLens` lives at [AnilOptimizely/JwtLens](https://github.com/AnilOptimizely/JwtLens).
 
 ## Guidance for building future packages
 
@@ -209,7 +211,7 @@ When creating a new Lens package (e.g., `JwtLens`):
 
 1. ~~Define shared architecture~~ (this document)
 2. ~~Create Lens.Abstractions skeleton~~ (this PR)
-3. Design JwtLens v0.1 API surface (see `docs/issues/design-jwtlens-v0.1.md`)
+3. Design JwtLens v0.1 API surface (see [`design-jwtlens-v0.1.md`](https://github.com/AnilOptimizely/JwtLens/blob/main/docs/issues/design-jwtlens-v0.1.md))
 4. Implement JwtLens v0.1 core interception
 5. Add JwtLens dashboard tab integration
 6. Update HttpLens.Dashboard to discover Lens contributors

@@ -17,7 +17,7 @@ HttpLens is the first package in a broader Lens family for .NET: focused, local-
 | CookieLens | Diagnose cookie creation, mutation, transport, and policy behavior. |
 | DiLens | Inspect dependency injection registrations, lifetimes, and resolutions. |
 | GcLens | Surface allocation and garbage collection activity for runtime tuning. |
-| JwtLens | Diagnose JWT issuance, claims shape, validation, and failures. |
+| [JwtLens](https://github.com/AnilOptimizely/JwtLens) | Diagnose JWT issuance, claims shape, validation, and failures. |
 | LogLens | Inspect structured logging flow, enrichment, filtering, and sinks. |
 | MailLens | Diagnose email composition, SMTP delivery attempts, and failures. |
 | MigrationLens | Track database migration planning, execution, and drift signals. |
