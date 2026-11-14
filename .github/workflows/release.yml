@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +33,30 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Test
+        run: dotnet test -c Release
+
+      # HttpLens.Abstractions is versioned separately; --skip-duplicate below
+      # leaves it alone unless its version was bumped.
       - name: Pack
-        run: dotnet pack -c Release -o ./packages
+        run: |
+          for p in src/HttpLens/HttpLens.csproj src/HttpLens.Core/HttpLens.Core.csproj src/HttpLens.Dashboard/HttpLens.Dashboard.csproj src/Lens.Abstractions/Lens.Abstractions.csproj; do
+            dotnet pack "$p" -c Release -o ./artifacts
+          done
+
+      - name: Verify tag matches package version
+        run: |
+          if [ ! -f "./artifacts/HttpLens.${GITHUB_REF_NAME#v}.nupkg" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match the HttpLens package version:" >&2
+            ls ./artifacts >&2
+            exit 1
+          fi
+
+      - name: NuGet login (Trusted Publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: AnilP
 
       - name: Push to NuGet
-        run: dotnet nuget push ./packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: dotnet nuget push "./artifacts/*.nupkg" --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

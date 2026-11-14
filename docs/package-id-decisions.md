@@ -36,9 +36,9 @@ The naming direction is **The Lens family for .NET**: a cohesive set of focused 
 ## Lens.Abstractions publication and compatibility expectations
 
 - While `Lens.Abstractions` remains in the HttpLens monorepo, keep `RepositoryUrl` pointed at `https://github.com/AnilOptimizely/HttpLens` and `PackageProjectUrl` pointed at `https://github.com/AnilOptimizely/HttpLens/tree/main/src/Lens.Abstractions`.
-- Publish `Lens.Abstractions` through the existing tag-driven workflow in `/home/runner/work/HttpLens/HttpLens/.github/workflows/release.yml`.
+- Publish `HttpLens.Abstractions` through the tag-driven workflow in `.github/workflows/release.yml`. It uses NuGet Trusted Publishing and `--skip-duplicate`, so a `v*` HttpLens release republishes `HttpLens.Abstractions` only when its version has been bumped.
 - Treat `Lens.Abstractions` as a shared dependency package, not the main end-user entry point; user-facing applications should typically install packages such as `HttpLens` or `JwtLens` instead.
 - Before JwtLens is extracted into its own repository, it must consume a published `Lens.Abstractions` package rather than a source `ProjectReference`.
-- `JwtLens` 0.1.0 on NuGet depends on the package ID `Lens.Abstractions`, which cannot be published (reserved prefix), so `JwtLens` 0.1.0 is unrestorable and should be deprecated.
+- `JwtLens` 0.1.0 on NuGet depends on the package ID `Lens.Abstractions`, which cannot be published (reserved prefix), so `JwtLens` 0.1.0 is unrestorable and has been unlisted.
 - `HttpLens.Abstractions` starts at `0.1.0`. The first standalone `JwtLens` release is `0.2.0-preview.1`, depending on `HttpLens.Abstractions` 0.1.0.
 - Additive contract changes in `Lens.Abstractions` may ship within the current major version, but breaking contract changes require a new major version and coordinated downstream package updates.

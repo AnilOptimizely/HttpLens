@@ -2,7 +2,7 @@
 
 ## Phase 1: Lens.Abstractions publication
 - [x] 1.1 Gate split: finalize `Lens.Abstractions` package metadata and publication process.
-- [ ] 1.2 Gate split: publish `Lens.Abstractions` 0.1.0 for downstream consumption (also satisfies the dependency of the already-published `JwtLens` 0.1.0). Blocked: NuGet publication is a manual maintainer step.
+- [x] 1.2 Gate split: publish the shared contracts 0.1.0 for downstream consumption. Published as `HttpLens.Abstractions` 0.1.0 because the `Lens.` NuGet prefix is reserved by another owner. `JwtLens` 0.1.0 depends on the unpublishable `Lens.Abstractions` ID, so it was unlisted.
 - [x] 1.3 Gate split: define the supported versioning and compatibility policy between `Lens.Abstractions` and `JwtLens`.
 
 ## Phase 2: Packaging and metadata cleanup
@@ -30,7 +30,7 @@
 - [x] 4.5 Gate split: add `global.json` to pin the SDK in the new JwtLens repo.
 - [x] 4.6 Gate split: create JwtLens-only CI with no Node/dashboard build step.
 - [x] 4.7 Gate split: create JwtLens-specific release automation and tagging strategy.
-- [ ] 4.8 Gate split: confirm NuGet ownership continuity for `PackageId=JwtLens`. Blocked: maintainer-owned NuGet access is required.
+- [x] 4.8 Gate split: confirm NuGet ownership continuity for `PackageId=JwtLens`.
 
 ## Phase 5: History split
 - [x] 5.1 Gate split: confirm the final `git filter-repo` path list.
@@ -51,9 +51,9 @@
 - [ ] 7.5 Post-split improvement: add CI path filters to reduce unrelated monorepo build cost. Blocked: this happens only after the repository split.
 
 ## Phase 8: First standalone JwtLens preview release
-- [ ] 8.1 Gate release: keep `PackageId=JwtLens` and preserve existing NuGet ownership. Blocked: release ownership is a maintainer-run step.
-- [ ] 8.2 Gate release: continue the existing preview version line. Blocked: the standalone release has not been cut yet.
-- [ ] 8.3 Gate release: publish the first standalone JwtLens preview with JwtLens-specific tags/releases. Blocked: release publication is a manual maintainer step.
+- [x] 8.1 Gate release: keep `PackageId=JwtLens` and preserve existing NuGet ownership.
+- [x] 8.2 Gate release: continue the existing version line (`JwtLens` 0.2.0-preview.1).
+- [x] 8.3 Gate release: publish the first standalone JwtLens preview with JwtLens-specific tags/releases. Published from tag `v0.2.0-preview.1` in AnilOptimizely/JwtLens using NuGet Trusted Publishing.
 
 ## Phase 9: Follow-ups after the split
 - [ ] 9.1 Follow-up: add JwtLens-side smoke tests against released HttpLens packages. Blocked: follow-up work after the split.
