@@ -216,4 +216,4 @@ When creating a new Lens package (e.g., `JwtLens`):
 5. Add JwtLens dashboard tab integration
 6. Update HttpLens.Dashboard to discover Lens contributors
 7. Publish the shared contracts as `HttpLens.Abstractions` v0.1.0
-8. Publish the first standalone `JwtLens` preview as v0.2.0-preview.1
+8. Publish the first standalone `JwtLens` preview as v0.2.0-preview.1, then stable v0.2.0

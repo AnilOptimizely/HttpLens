@@ -40,5 +40,5 @@ The naming direction is **The Lens family for .NET**: a cohesive set of focused 
 - Treat `Lens.Abstractions` as a shared dependency package, not the main end-user entry point; user-facing applications should typically install packages such as `HttpLens` or `JwtLens` instead.
 - Before JwtLens is extracted into its own repository, it must consume a published `Lens.Abstractions` package rather than a source `ProjectReference`.
 - `JwtLens` 0.1.0 on NuGet depends on the package ID `Lens.Abstractions`, which cannot be published (reserved prefix), so `JwtLens` 0.1.0 is unrestorable and has been unlisted.
-- `HttpLens.Abstractions` starts at `0.1.0`. The first standalone `JwtLens` release is `0.2.0-preview.1`, depending on `HttpLens.Abstractions` 0.1.0.
+- `HttpLens.Abstractions` starts at `0.1.0`. The first standalone `JwtLens` release is `0.2.0-preview.1`, depending on `HttpLens.Abstractions` 0.1.0. The first stable standalone release is `0.2.0`.
 - Additive contract changes in `Lens.Abstractions` may ship within the current major version, but breaking contract changes require a new major version and coordinated downstream package updates.
