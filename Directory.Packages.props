@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <JwtLensVersion Condition="'$(JwtLensVersion)' == ''">0.1.0</JwtLensVersion>
+    <JwtLensVersion Condition="'$(JwtLensVersion)' == ''">0.2.0-preview.1</JwtLensVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.AspNetCore.SignalR" Version="1.2.9" />

@@ -26,7 +26,7 @@ This document defines the shared architecture, conventions, and foundation for t
 |-------|---------|---------|
 | Domain package | `{Domain}Lens` | `JwtLens`, `SqlLens`, `CacheLens` |
 | Core library (if split) | `{Domain}Lens.Core` | `JwtLens.Core` |
-| Shared abstractions | `Lens.Abstractions` | — |
+| Shared abstractions | `HttpLens.Abstractions` (namespace `Lens.Abstractions`; the `Lens.` NuGet prefix is reserved by another owner) | — |
 | Existing packages | `HttpLens`, `HttpLens.Core`, `HttpLens.Dashboard` | — |
 
 All package IDs use PascalCase with no dots between domain and "Lens" (e.g., `JwtLens` not `Jwt.Lens`).
@@ -190,7 +190,7 @@ tests/
 └── Lens.Abstractions.Tests/     # NEW: shared abstractions tests
 ```
 
-Domain packages live in their own repositories and consume `Lens.Abstractions` from NuGet. `JwtLens` lives at [AnilOptimizely/JwtLens](https://github.com/AnilOptimizely/JwtLens).
+Domain packages live in their own repositories and consume `HttpLens.Abstractions` from NuGet. `JwtLens` lives at [AnilOptimizely/JwtLens](https://github.com/AnilOptimizely/JwtLens).
 
 ## Guidance for building future packages
 
@@ -215,5 +215,5 @@ When creating a new Lens package (e.g., `JwtLens`):
 4. Implement JwtLens v0.1 core interception
 5. Add JwtLens dashboard tab integration
 6. Update HttpLens.Dashboard to discover Lens contributors
-7. Publish `Lens.Abstractions` v0.1.0 (required by the already-published `JwtLens` v0.1.0)
+7. Publish the shared contracts as `HttpLens.Abstractions` v0.1.0
 8. Publish the first standalone `JwtLens` preview as v0.2.0-preview.1

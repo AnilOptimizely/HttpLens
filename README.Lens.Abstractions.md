@@ -1,13 +1,13 @@
-# Lens.Abstractions
+# HttpLens.Abstractions
 
 Shared contracts for the Lens family for .NET.
 
-> **Most application developers should install a product package such as [`HttpLens`](https://www.nuget.org/packages/HttpLens) or `JwtLens`, not `Lens.Abstractions` directly.** Install this package when you are building a Lens-family producer, consumer, or integration that needs the shared contract types.
+> **Most application developers should install a product package such as [`HttpLens`](https://www.nuget.org/packages/HttpLens) or `JwtLens`, not `HttpLens.Abstractions` directly.** Install this package when you are building a Lens-family producer, consumer, or integration that needs the shared contract types.
 
 ## Installation
 
 ```shell
-dotnet add package Lens.Abstractions
+dotnet add package HttpLens.Abstractions
 ```
 
 ## What's Inside
@@ -22,7 +22,7 @@ dotnet add package Lens.Abstractions
 
 ## Compatibility
 
-- `Lens.Abstractions` is the shared package boundary for Lens-family producers and consumers.
+- `HttpLens.Abstractions` (namespace `Lens.Abstractions`) is the shared package boundary for Lens-family producers and consumers.
 - While it remains in the HttpLens monorepo, package metadata and releases follow the same tag-based workflow as the other published packages.
 - Contract changes are versioned conservatively: additive changes stay within the current major version, while breaking contract changes require a major version bump and coordinated downstream updates.
 
